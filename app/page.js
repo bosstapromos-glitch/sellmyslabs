@@ -77,14 +77,14 @@ export default function SellMySlabs() {
         {/* NAV — semantic <header> */}
         <header style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 16px",borderBottom:"1px solid var(--border)",backdropFilter:"blur(24px)",position:"sticky",top:0,zIndex:100,background:"rgba(5,5,7,0.8)",gap:8,flexWrap:"wrap"}}>
           <a onClick={()=>{setPage("home");setSelId(null)}} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:12,textDecoration:"none",color:"inherit"}} aria-label="Sell My Slabs Home">
-            <div style={{width:34,height:44,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-              <svg width="34" height="44" viewBox="0 0 64 80">
-                <defs><linearGradient id="navGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#E8D5A3"/><stop offset="50%" stopColor="#C8A961"/><stop offset="100%" stopColor="#8B6914"/></linearGradient></defs>
-                <rect x="2" y="0" width="60" height="80" rx="8" fill="url(#navGold)"/>
-                <rect x="6" y="4" width="52" height="72" rx="6" fill="#050507"/>
-                <text x="32" y="48" textAnchor="middle" fontFamily="Outfit,Arial,sans-serif" fontWeight="900" fontSize="36" fill="url(#navGold)">S</text>
-                <rect x="16" y="62" width="32" height="10" rx="3" fill="url(#navGold)"/>
-                <text x="32" y="70" textAnchor="middle" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="7" fill="#050507">10</text>
+            <div style={{width:40,height:50,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <svg width="40" height="50" viewBox="0 0 64 80">
+                <defs><linearGradient id="navGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#F2E2B6"/><stop offset="50%" stopColor="#C8A961"/><stop offset="100%" stopColor="#A08339"/></linearGradient></defs>
+                <rect x="0" y="0" width="64" height="80" rx="10" fill="url(#navGold)"/>
+                <rect x="5" y="5" width="54" height="70" rx="7" fill="#0A0A0F"/>
+                <text x="32" y="50" textAnchor="middle" fontFamily="Outfit,Arial,sans-serif" fontWeight="900" fontSize="38" fill="url(#navGold)">S</text>
+                <rect x="14" y="62" width="36" height="12" rx="4" fill="url(#navGold)"/>
+                <text x="32" y="71" textAnchor="middle" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="8" fill="#0A0A0F">GEM</text>
               </svg>
             </div>
             <div>
