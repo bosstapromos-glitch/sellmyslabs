@@ -75,15 +75,16 @@ export default function SellMySlabs() {
       <a href="#main-content" className="skip-link">Skip to main content</a>
       <div className="grid-bg" style={{minHeight:"100vh",position:"relative",zIndex:1}}>
         {/* NAV — semantic <header> */}
-        <header style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 28px",borderBottom:"1px solid var(--border)",backdropFilter:"blur(24px)",position:"sticky",top:0,zIndex:100,background:"rgba(5,5,7,0.8)"}}>
+        <header style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 16px",borderBottom:"1px solid var(--border)",backdropFilter:"blur(24px)",position:"sticky",top:0,zIndex:100,background:"rgba(5,5,7,0.8)",gap:8,flexWrap:"wrap"}}>
           <a onClick={()=>{setPage("home");setSelId(null)}} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:12,textDecoration:"none",color:"inherit"}} aria-label="Sell My Slabs Home">
-            <div style={{width:38,height:48,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-              <svg width="30" height="38" viewBox="0 0 64 80">
+            <div style={{width:34,height:44,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <svg width="34" height="44" viewBox="0 0 64 80">
                 <defs><linearGradient id="navGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#E8D5A3"/><stop offset="50%" stopColor="#C8A961"/><stop offset="100%" stopColor="#8B6914"/></linearGradient></defs>
-                <rect x="4" y="0" width="56" height="80" rx="6" fill="none" stroke="url(#navGold)" strokeWidth="3"/>
-                <rect x="12" y="8" width="40" height="52" rx="3" fill="none" stroke="url(#navGold)" strokeWidth="2" opacity="0.4"/>
-                <rect x="16" y="64" width="32" height="12" rx="3" fill="url(#navGold)"/>
-                <text x="32" y="42" textAnchor="middle" fontFamily="Outfit,Arial,sans-serif" fontWeight="900" fontSize="28" fill="url(#navGold)">S</text>
+                <rect x="2" y="0" width="60" height="80" rx="8" fill="url(#navGold)"/>
+                <rect x="6" y="4" width="52" height="72" rx="6" fill="#050507"/>
+                <text x="32" y="48" textAnchor="middle" fontFamily="Outfit,Arial,sans-serif" fontWeight="900" fontSize="36" fill="url(#navGold)">S</text>
+                <rect x="16" y="62" width="32" height="10" rx="3" fill="url(#navGold)"/>
+                <text x="32" y="70" textAnchor="middle" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="7" fill="#050507">10</text>
               </svg>
             </div>
             <div>
@@ -130,7 +131,7 @@ export default function SellMySlabs() {
         {/* FOOTER — semantic + SEO keyword-rich */}
         {page==="home" && (
           <footer style={{borderTop:"1px solid var(--border)",padding:"48px 28px 32px",maxWidth:1200,margin:"0 auto"}}>
-            <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:40,marginBottom:40}}>
+            <div className="footer-grid-main" style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:40,marginBottom:40}}>
               <div>
                 <div style={{fontSize:18,fontWeight:800,marginBottom:12}}><span className="gold-text">SellMySlabs</span></div>
                 <p style={{fontSize:13,color:"var(--text3)",lineHeight:1.8,maxWidth:320}}>
@@ -252,10 +253,10 @@ function Landing({ onStart }) {
         <div style={{textAlign:"center",marginBottom:16}}>
           <h2 className="mono" style={{fontSize:12,color:"var(--text3)",letterSpacing:".1em",textTransform:"uppercase"}}>Accepted Grading Companies</h2>
         </div>
-        <div style={{display:"flex",justifyContent:"center",gap:32,alignItems:"center",padding:"16px 0"}}>
+        <div style={{display:"flex",justifyContent:"center",gap:16,alignItems:"center",padding:"16px 0",flexWrap:"wrap"}}>
           {GRADERS.map(g=>(
-            <div key={g} style={{padding:"14px 36px",borderRadius:12,border:"1px solid var(--border)",background:"var(--surface)"}}>
-              <span style={{fontSize:22,fontWeight:800,letterSpacing:".08em",color:"var(--text2)"}}>{g}</span>
+            <div key={g} style={{padding:"14px 28px",borderRadius:12,border:"1px solid var(--border)",background:"var(--surface)"}}>
+              <span style={{fontSize:20,fontWeight:800,letterSpacing:".08em",color:"var(--text2)"}}>{g}</span>
             </div>
           ))}
         </div>
