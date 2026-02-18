@@ -308,7 +308,31 @@ function SubmitSingle({ onSubmit, onBulk, lead }) {
   const handleImg = e => { Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>setImages(p=>[...p,{name:f.name,data:ev.target.result}]);r.readAsDataURL(f)}); };
   const canSubmit = form.category&&form.gradingCompany&&form.certNumber&&form.cardName&&form.grade&&form.name&&form.email;
 
-  const submit = () => { if(!canSubmit) return; onSubmit({...form,images}); setDone(true); setCount(c=>c+1); };
+  const submit = async () => {
+    if(!canSubmit) return;
+    try {
+      await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: "fb1ef25d-9abe-4f4e-ad2e-c5e289011904",
+          subject: "New Card Submission - " + form.cardName,
+          from_name: "SellMySlabs.net",
+          name: form.name,
+          email: form.email,
+          phone: form.phone || "Not provided",
+          category: form.category,
+          grading_company: form.gradingCompany,
+          cert_number: form.certNumber,
+          card_name: form.cardName,
+          grade: form.grade,
+          asking_price: form.askingPrice || "Not provided",
+          source: lead?.source || "Direct",
+        })
+      });
+    } catch(e) { console.error(e); }
+    onSubmit({...form,images}); setDone(true); setCount(c=>c+1);
+  };
   const reset = () => { setForm(f=>({...f,category:"",gradingCompany:"",certNumber:"",cardName:"",grade:"",askingPrice:""})); setImages([]); setDone(false); };
 
   if (done) return (
