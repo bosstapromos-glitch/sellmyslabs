@@ -47,6 +47,16 @@ const save = (k, d) => { try { if (typeof window !== 'undefined') localStorage.s
 // ─── MAIN APP ───
 export default function SellMySlabs() {
   const [page, setPage] = useState("home");
+   useEffect(() => {
+    if (!window.$crisp) {
+      window.$crisp = [];
+      window.CRISP_WEBSITE_ID = "85fa75e1-15ae-4443-9de9-20db635429e9";
+      const s = document.createElement("script");
+      s.src = "https://client.crisp.chat/l.js";
+      s.async = 1;
+      document.head.appendChild(s);
+    }
+  }, []);
   const [subs, setSubs] = useState([]);
   const [selId, setSelId] = useState(null);
   const [ready, setReady] = useState(false);
