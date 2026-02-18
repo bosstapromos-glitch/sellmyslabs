@@ -47,16 +47,6 @@ const save = (k, d) => { try { if (typeof window !== 'undefined') localStorage.s
 // ─── MAIN APP ───
 export default function SellMySlabs() {
   const [page, setPage] = useState("home");
-   useEffect(() => {
-    if (!window.$crisp) {
-      window.$crisp = [];
-      window.CRISP_WEBSITE_ID = "85fa75e1-15ae-4443-9de9-20db635429e9";
-      const s = document.createElement("script");
-      s.src = "https://client.crisp.chat/l.js";
-      s.async = 1;
-      document.head.appendChild(s);
-    }
-  }, []);
   const [subs, setSubs] = useState([]);
   const [selId, setSelId] = useState(null);
   const [ready, setReady] = useState(false);
@@ -87,7 +77,15 @@ export default function SellMySlabs() {
         {/* NAV — semantic <header> */}
         <header style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 28px",borderBottom:"1px solid var(--border)",backdropFilter:"blur(24px)",position:"sticky",top:0,zIndex:100,background:"rgba(5,5,7,0.8)"}}>
           <a onClick={()=>{setPage("home");setSelId(null)}} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:12,textDecoration:"none",color:"inherit"}} aria-label="Sell My Slabs Home">
-            <div style={{width:38,height:38,borderRadius:10,background:"linear-gradient(135deg,#C8A961,#8B6914)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,fontWeight:900,color:"#050507"}}>S</div>
+            <div style={{width:38,height:48,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <svg width="30" height="38" viewBox="0 0 64 80">
+                <defs><linearGradient id="navGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#E8D5A3"/><stop offset="50%" stopColor="#C8A961"/><stop offset="100%" stopColor="#8B6914"/></linearGradient></defs>
+                <rect x="4" y="0" width="56" height="80" rx="6" fill="none" stroke="url(#navGold)" strokeWidth="3"/>
+                <rect x="12" y="8" width="40" height="52" rx="3" fill="none" stroke="url(#navGold)" strokeWidth="2" opacity="0.4"/>
+                <rect x="16" y="64" width="32" height="12" rx="3" fill="url(#navGold)"/>
+                <text x="32" y="42" textAnchor="middle" fontFamily="Outfit,Arial,sans-serif" fontWeight="900" fontSize="28" fill="url(#navGold)">S</text>
+              </svg>
+            </div>
             <div>
               <div style={{fontSize:18,fontWeight:800,letterSpacing:"-0.03em",lineHeight:1}}><span className="gold-text">SellMySlabs</span></div>
               <div className="mono" style={{fontSize:9,color:"var(--text3)",letterSpacing:".15em",textTransform:"uppercase"}}>Graded Card Buyers</div>
