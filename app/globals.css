@@ -1,83 +1,92 @@
-import './globals.css';
+:root {
+  --bg: #050507; --surface: #0A0A0F; --surface2: #111118;
+  --border: rgba(255,255,255,0.06); --border2: rgba(255,255,255,0.1);
+  --text: #F4F4F5; --text2: #A1A1AA; --text3: #52525B;
+  --gold: #C8A961; --gold2: #E8D5A3; --gold-glow: rgba(200,169,97,0.15);
+  --green: #34D399; --red: #F87171; --blue: #60A5FA;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Outfit',sans-serif; overflow-x:hidden; }
+h1,h2,h3,h4,h5,h6 { font-family:'Outfit',sans-serif; }
 
-export const metadata = {
-  metadataBase: new URL('https://sellmyslabs.net'),
-  title: {
-    default: 'Sell My Slabs — Sell Your Graded Cards for Cash | PSA, CGC, BGS',
-    template: '%s | Sell My Slabs',
-  },
-  description: 'Sell your graded cards for cash. We buy PSA, CGC & BGS slabs — Pokémon, football, baseball, basketball, hockey, soccer & One Piece. Get an offer within 24 hours. Fast payment, trusted buyers.',
-  keywords: ['sell graded cards', 'sell PSA cards', 'sell CGC cards', 'sell BGS cards', 'sell pokemon cards for cash', 'graded card buyers', 'sell my slabs', 'sell sports cards', 'sell trading cards', 'card buyers near me', 'sell graded pokemon cards', 'sell graded sports cards', 'sell one piece cards', 'sell hockey cards', 'sell soccer cards', 'sell baseball cards', 'sell football cards', 'sell basketball cards', 'graded card buyers near me', 'sell PSA 10 cards', 'sell CGC cards for cash'],
-  authors: [{ name: 'Sell My Slabs' }],
-  creator: 'Sell My Slabs',
-  publisher: 'Sell My Slabs',
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
-  alternates: { canonical: 'https://sellmyslabs.net' },
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://sellmyslabs.net',
-    siteName: 'Sell My Slabs',
-    title: 'Sell My Slabs — Sell Your Graded Cards for Cash',
-    description: 'We buy PSA, CGC & BGS graded cards. Pokémon, sports cards, One Piece & more. Get a competitive offer within 24 hours.',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Sell My Slabs — Sell Your Graded Cards for Cash',
-    description: 'We buy PSA, CGC & BGS graded cards. Get an offer within 24 hours. Fast payment.',
-  },
-  other: {
-    'theme-color': '#C8A961',
-  },
-};
+@keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+@keyframes slideIn { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
+@keyframes gradMove { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes countUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
-const jsonLd = [
-  {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": "Sell My Slabs",
-    "url": "https://sellmyslabs.net",
-    "description": "We buy PSA, CGC & BGS graded trading cards for cash. Pokémon, sports cards, One Piece and more. Competitive offers within 24 hours.",
-    "priceRange": "$$",
-    "areaServed": { "@type": "Country", "name": "United States" },
-    "knowsAbout": ["Graded Trading Cards", "PSA Cards", "CGC Cards", "BGS Cards", "Pokémon Cards", "Sports Cards", "One Piece Cards"],
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "Sell My Slabs",
-    "url": "https://sellmyslabs.net",
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      { "@type": "Question", "name": "What graded cards do you buy?", "acceptedAnswer": { "@type": "Answer", "text": "We buy PSA, CGC, and BGS graded cards across Pokémon, football, baseball, basketball, hockey, soccer, and One Piece categories." } },
-      { "@type": "Question", "name": "How fast will I get an offer?", "acceptedAnswer": { "@type": "Answer", "text": "We review every submission individually and typically respond within 24 hours with an offer or update." } },
-      { "@type": "Question", "name": "Is every card guaranteed to receive an offer?", "acceptedAnswer": { "@type": "Answer", "text": "No. We review every submission but offers are based on our current buying criteria, market conditions, and inventory needs. We will always respond to let you know either way." } },
-      { "@type": "Question", "name": "How do I get paid?", "acceptedAnswer": { "@type": "Answer", "text": "Once you accept an offer and ship your cards, we process payment quickly. We support multiple payment methods for your convenience." } },
-      { "@type": "Question", "name": "Can I submit multiple cards at once?", "acceptedAnswer": { "@type": "Answer", "text": "Yes! We offer both single card submission and bulk submission via CSV upload or manual multi-card entry for larger collections." } },
-    ],
-  },
-];
+.au { animation:fadeUp .8s ease both }
+.au1{animation:fadeUp .8s ease .1s both} .au2{animation:fadeUp .8s ease .2s both}
+.au3{animation:fadeUp .8s ease .3s both} .au4{animation:fadeUp .8s ease .4s both}
+.au5{animation:fadeUp .8s ease .5s both} .au6{animation:fadeUp .8s ease .6s both}
 
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-        {jsonLd.map((schema, i) => (
-          <script
-            key={i}
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-          />
-        ))}
-      </head>
-      <body>{children}</body>
-    </html>
-  );
+.gold-text {
+  background:linear-gradient(135deg,#C8A961 0%,#F2E2B6 40%,#C8A961 60%,#A08339 100%);
+  background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text; animation:gradMove 4s ease infinite;
+}
+.glow-line { height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); opacity:.3; }
+
+.card-hover { transition:all .3s cubic-bezier(.4,0,.2,1); cursor:pointer; }
+.card-hover:hover { border-color:rgba(200,169,97,.25)!important; transform:translateY(-2px); box-shadow:0 8px 40px rgba(200,169,97,.06); }
+
+.btn-gold { background:linear-gradient(135deg,#C8A961,#A08339); color:#050507; font-weight:700; border:none; cursor:pointer; transition:all .3s; font-family:'Outfit',sans-serif; }
+.btn-gold:hover { box-shadow:0 4px 30px rgba(200,169,97,.3); transform:translateY(-1px); }
+.btn-gold:disabled { opacity:.3; cursor:default; transform:none; box-shadow:none; }
+
+.btn-ghost { background:transparent; color:var(--text2); border:1px solid var(--border2); cursor:pointer; transition:all .2s; font-family:'Outfit',sans-serif; }
+.btn-ghost:hover { border-color:var(--gold); color:var(--gold); }
+
+.input { width:100%; padding:14px 16px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:14px; font-family:'Outfit',sans-serif; outline:none; transition:border .2s; }
+.input:focus { border-color:rgba(200,169,97,.4); }
+.input::placeholder { color:var(--text3); }
+.input-m { font-family:'JetBrains Mono',monospace; font-size:13px; }
+
+.label { font-size:11px; font-weight:600; color:var(--text3); margin-bottom:8px; display:block; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.1em; }
+
+.sel { width:100%; padding:14px 16px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:14px; font-family:'Outfit',sans-serif; outline:none; appearance:none; background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2352525B' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 16px center; transition:border .2s; }
+.sel:focus { border-color:rgba(200,169,97,.4); }
+
+.mono { font-family:'JetBrains Mono',monospace; }
+
+.grid-bg {
+  background-image: linear-gradient(rgba(200,169,97,.03) 1px,transparent 1px), linear-gradient(90deg,rgba(200,169,97,.03) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.noise { position:fixed; top:0; left:0; width:100%; height:100%; opacity:.015;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:0;
+}
+.badge { display:inline-flex; align-items:center; padding:4px 12px; border-radius:6px; font-size:11px; font-weight:600; font-family:'JetBrains Mono',monospace; }
+
+details summary::-webkit-details-marker { display:none; }
+details summary { list-style:none; }
+details[open] summary span:last-child { transform:rotate(45deg); }
+
+/* Accessibility */
+:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+.input:focus-visible, .sel:focus-visible { outline:2px solid var(--gold); outline-offset:0; border-color:transparent; }
+.btn-gold:focus-visible, .btn-ghost:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+.skip-link { position:absolute; top:-100px; left:16px; padding:12px 24px; background:var(--gold); color:var(--bg); font-weight:700; border-radius:8px; z-index:9999; font-size:14px; text-decoration:none; transition:top .2s; }
+.skip-link:focus { top:16px; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+@media(prefers-reduced-motion:reduce) {
+  *, *::before, *::after { animation-duration:0.01ms!important; animation-iteration-count:1!important; transition-duration:0.01ms!important; }
+}
+@media(prefers-contrast:high) {
+  :root { --border:rgba(255,255,255,0.3); --border2:rgba(255,255,255,0.5); --text2:#D4D4D8; --text3:#A1A1AA; }
+}
+
+@media(max-width:768px) {
+  .hero-title { font-size:36px!important; }
+  .stats-grid { grid-template-columns:repeat(2,1fr)!important; }
+  .cats-flex { justify-content:center!important; }
+  .steps-grid { grid-template-columns:1fr!important; }
+  .form-grid-3 { grid-template-columns:1fr!important; }
+  .form-grid-2 { grid-template-columns:1fr!important; }
+  .dash-stats { grid-template-columns:repeat(2,1fr)!important; }
+  .detail-header { flex-direction:column!important; }
+  .bulk-row { grid-template-columns:1fr 1fr!important; }
+  .footer-grid { grid-template-columns:1fr 1fr!important; }
 }
