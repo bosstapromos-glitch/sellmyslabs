@@ -454,9 +454,22 @@ function BulkSubmit({ onSubmit, onSingle }) {
     reader.readAsText(file);
   };
 
-  const submitAll = () => {
+  const submitAll = async () => {
     const cards=mode==="csv"?csvData:rows.filter(r=>r.certNumber&&r.cardName);
-    if(!cards.length)return; onSubmit(cards); setCount(cards.length); setDone(true);
+    if(!cards.length)return;
+    try {
+      await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: "fb1ef25d-9abe-4f4e-ad2e-c5e289011904",
+          subject: "Bulk Submission - " + cards.length + " cards",
+          from_name: "SellMySlabs.net",
+          message: cards.map((c,i) => "Card " + (i+1) + ": " + c.cardName + " | " + c.gradingCompany + " | Cert: " + c.certNumber + " | Grade: " + c.grade + " | Category: " + c.category + " | Ask: $" + (c.askingPrice||"N/A")).join("\n"),
+        })
+      });
+    } catch(e) { console.error(e); }
+    onSubmit(cards); setCount(cards.length); setDone(true);
   };
 
   if(done) return (
