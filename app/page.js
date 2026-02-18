@@ -101,9 +101,9 @@ export default function SellMySlabs() {
             ):(
               <div style={{display:"flex",alignItems:"center",gap:4,marginLeft:8}}>
                 <input type="password" placeholder="PIN" value={pin} onChange={e=>setPin(e.target.value)}
-                  onKeyDown={e=>{if(e.key==="Enter"&&pin==="2024"){setAuth(true);setPage("admin");setPin("")}}}
+                  onKeyDown={e=>{if(e.key==="Enter"&&pin==="2522"){setAuth(true);setPage("admin");setPin("")}}}
                   style={{width:56,padding:"7px 10px",borderRadius:7,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text)",fontSize:12,fontFamily:"'JetBrains Mono',monospace",outline:"none"}}/>
-                <button onClick={()=>{if(pin==="2024"){setAuth(true);setPage("admin");setPin("")}}}
+                <button onClick={()=>{if(pin==="2522"){setAuth(true);setPage("admin");setPin("")}}}
                   style={{padding:"7px 12px",borderRadius:7,border:"none",background:"var(--gold)",color:"var(--bg)",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Outfit',sans-serif"}}>→</button>
               </div>
             )}
