@@ -78,9 +78,9 @@ export default function RootLayout({ children }) {
         ))}
       </head>
       <body>
-  {children}
-  <script dangerouslySetInnerHTML={{ __html: `window.$crisp=[];window.CRISP_WEBSITE_ID="85fa75e1-15ae-4443-9de9-20db635429e9";(function(){var d=document;var s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s)})();` }} />
-</body>
+        {children}
+        <script dangerouslySetInnerHTML={{ __html: `window.$crisp=[];window.CRISP_WEBSITE_ID="85fa75e1-15ae-4443-9de9-20db635429e9";(function(){var d=document;var s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s)})();` }} />
+      </body>
     </html>
   );
 }
