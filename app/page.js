@@ -56,13 +56,6 @@ export default function Home() {
             />
             <figcaption>
               <span>Real cards. Real potential.</span>
-              <a
-                href="https://my.taggrading.com/card/E9221873"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Example slab · Image: TAG
-              </a>
             </figcaption>
           </figure>
         </section>
