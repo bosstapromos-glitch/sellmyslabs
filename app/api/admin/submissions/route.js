@@ -1,6 +1,13 @@
+import { randomUUID } from "node:crypto";
+import { owner } from "../../../../lib/security";
+import { siteUrl } from "../../../../lib/origin";
+import { offerMessage } from "../../../../lib/offer-message";
+import { SAVE_OFFER_SQL } from "../../../../lib/offer-records";
+import { deliverOffer, offerEmailSummary } from "../../../../lib/offer-delivery";
 import { db } from "../../../../lib/db";
 import { signedIn, sameOrigin } from "../../../../lib/security";
 import { updateSchema } from "../../../../lib/validation";
+export const maxDuration = 60;
 export async function GET(request) {
   if (!(await signedIn()))
     return Response.json(
@@ -20,6 +27,7 @@ export async function GET(request) {
         {
           submission: {
             ...row,
+            offer_email: await offerEmailSummary(id),
             photos: row.photos.map((p, i) => ({ index: i, type: p.type })),
           },
         },
@@ -51,11 +59,22 @@ export async function PATCH(request) {
       );
     const d = parsed.data;
     const sql = db();
-    const rows =
-      await sql`UPDATE submissions SET status=${d.status},internal_notes=${d.notes},offer=${d.offer || null},updated_at=now() WHERE id=${d.id} RETURNING id`;
-    if (!rows.length)
-      return Response.json({ error: "Request not found" }, { status: 404 });
-    return Response.json({ ok: true });
+    const [submission] = await sql`SELECT * FROM submissions WHERE id=${d.id}`;
+    if (!submission) return Response.json({ error: "Request not found" }, { status: 404 });
+    if (d.offer && (!process.env.MAIL_FROM || !process.env.RESEND_API_KEY))
+      return Response.json({ error: "Email is not connected. The offer was not changed." }, { status: 503 });
+    const payload = d.offer ? offerMessage(submission, d.offer, {
+      from: process.env.MAIL_FROM, replyTo: owner(), site: siteUrl(),
+    }) : null;
+    const [saved] = await sql.query(SAVE_OFFER_SQL, [d.id, d.status, d.notes, d.offer || null, d.offerVersion, randomUUID(), JSON.stringify(payload)]);
+    if (!saved) return Response.json({ error: "This request changed or an email is sending. Reopen it before saving again." }, { status: 409 });
+    try {
+      if (saved.queued_email) await deliverOffer(saved.queued_email);
+    } catch {
+      // The saved offer and pending email remain recoverable from the inbox.
+      console.error("Offer email needs retry");
+    }
+    return Response.json({ ok: true, saved, offer_email: await offerEmailSummary(d.id) });
   } catch {
     return Response.json(
       { error: "Changes could not be saved." },

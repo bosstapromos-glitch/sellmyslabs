@@ -78,11 +78,15 @@ export default function Workspace({ authenticated }) {
           status,
           notes,
           offer: String(offer),
+          offerVersion: selected.offer_version,
         }),
       });
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
-      setSaved(true);
+      setSelected(current => ({ ...current, ...d.saved, offer_email: d.offer_email }));
+      setSaved(d.saved.queued_email
+        ? (d.offer_email?.status === 'sent' ? 'Offer saved and emailed to the seller.' : 'Offer saved. The email has not been confirmed; check its status below.')
+        : 'Changes saved. No new offer email was sent.');
       await refresh();
     } catch (e) {
       setError(e.message);
@@ -90,6 +94,23 @@ export default function Workspace({ authenticated }) {
       setBusy(false);
     }
   }
+  async function retryEmail() {
+    setBusy(true);
+    setError('');
+    setSaved(false);
+    try {
+      const response = await fetch('/api/admin/offer-email', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: selected.offer_email.id }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error);
+      setSelected(current => ({ ...current, offer_email: data.offer_email }));
+      setSaved(data.offer_email?.status === 'sent' ? 'Offer emailed to the seller.' : 'Email is not confirmed yet. Check the status below.');
+    } catch (e) { setError(e.message); }
+    finally { setBusy(false); }
+  }
+  const changedOffer = selected && offer !== '' && Number(offer) !== Number(selected.offer);
   if (!authenticated)
     return (
       <div style={{ maxWidth: 500 }}>
@@ -175,6 +196,7 @@ export default function Workspace({ authenticated }) {
           {filtered.map((s) => (
             <button
               key={s.id}
+              disabled={busy}
               className={`inbox-item ${selected?.id === s.id ? "active" : ""}`}
               onClick={() => open(s.id)}
             >
@@ -264,7 +286,7 @@ export default function Workspace({ authenticated }) {
               </div>
               <form className="panel" onSubmit={save}>
                 <h2>Manage this request</h2>
-                <div className="field-grid">
+                <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0 }}><div className="field-grid">
                   <label className="field">
                     Status
                     <select
@@ -304,18 +326,35 @@ export default function Workspace({ authenticated }) {
                     />
                   </label>
                 </div>
+                </fieldset>
                 <p className="hint">
-                  Notes, offers and status changes stay in your workspace.
-                  Contact the seller separately to confirm an offer or shipping
-                  details.
+                  Saving a new or changed price emails the total offer and card list to {selected.email}.
+                  Their replies go to jt@nxtdeal.co. Notes and status changes stay private.
                 </p>
                 <button className="button" disabled={busy}>
-                  {busy ? "Saving…" : "Save changes"}
+                  {busy ? "Saving…" : changedOffer ? "Save & email offer" : "Save changes"}
                 </button>
                 {saved && (
                   <p className="success" role="status">
-                    Changes saved.
+                    {saved}
                   </p>
+                )}
+                {selected.offer_email && (
+                  <div role="status" style={{ marginTop: 20 }}>
+                    <strong>Offer email · ${Number(selected.offer_email.amount).toFixed(2)}</strong>
+                    <p className="hint">
+                      {selected.offer_email.status === 'sent'
+                        ? `Sent ${new Date(selected.offer_email.sent_at).toLocaleString()}.`
+                        : selected.offer_email.status === 'sending' && !selected.offer_email.can_retry
+                          ? 'Email is sending. Reopen this request shortly to check.'
+                          : 'Email has not been confirmed as sent.'}
+                    </p>
+                    {selected.offer_email.can_retry ? (
+                      <button type="button" className="button quiet small" disabled={busy || offer === '' || changedOffer} onClick={retryEmail}>Retry offer email</button>
+                    ) : selected.offer_email.status !== 'sent' && selected.offer_email.status !== 'sending' ? (
+                      <p className="hint">Check with the seller before sending another offer. This email may be outdated or its safe retry window may have ended.</p>
+                    ) : null}
+                  </div>
                 )}
               </form>
             </>

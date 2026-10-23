@@ -28,9 +28,9 @@ Customers enter cards (or import up to 50 CSV rows), contact details, and consen
 
 The database commit is authoritative. The customer receives a reference only after the row is saved. The request UUID prevents duplicate inserts. Owner email notifications are attempted after the response; failures remain visible as pending. A daily cron retries pending notifications and removes expired login tokens/rate-limit buckets. Email delivery acceptance is recorded, not a claim of inbox delivery.
 
-Owner access uses a short-lived one-use email link plus an explicit confirmation to avoid email link scanners consuming it. Signed, HTTP-only sessions last 12 hours. No client-side PIN. Request status, offer and notes are internal; saving does not email a customer.
+Owner access uses a short-lived one-use email link plus an explicit confirmation to avoid email link scanners consuming it. Signed, HTTP-only sessions last 12 hours. No client-side PIN. Saving a positive new or changed total offer automatically emails the seller the offer and card list, with replies to the owner. Notes and status-only changes remain private. Offer saves and an immutable email payload are committed together, with version checks, a send lease, and provider idempotency. The portal records email acceptance and allows safe retries for up to 23 hours after the first attempt; older uncertain sends need manual review. Sent means provider acceptance, not guaranteed inbox delivery.
 
-The inbox currently shows the most recent 500 requests. This initial release does not support customer accounts, automatic payments, shipping labels, or automatic customer offer emails.
+The inbox currently shows the most recent 500 requests. This initial release does not support customer accounts, automatic payments, shipping labels.
 
 ## Hosted release verification
 
@@ -47,7 +47,7 @@ Check the public domain after each production deployment. Automated tests cover 
 
 ## Imagery
 
-`public/images/tag-charizard.jpg` is the original high-resolution photograph from TAG's public card record for E9221873 (Charizard ex, 2023 Obsidian Flames, TAG 9). Source: https://my.taggrading.com/card/E9221873 . Asset: https://d39lwrz0lm7c9r.cloudfront.net/slab-images/E9221873_Slabbed_FRONT.jpg . It is labeled as an example, linked to its source, and not represented as shop inventory. No AI-generated certification number, grade, or card artwork is used.
+`public/images/tag-charizard.jpg` is the original high-resolution photograph from TAG's public card record for E9221873 (Charizard ex, 2023 Obsidian Flames, TAG 9). Source: https://my.taggrading.com/card/E9221873 . Asset: https://d39lwrz0lm7c9r.cloudfront.net/slab-images/E9221873_Slabbed_FRONT.jpg . The image source is recorded here; it is not represented as shop inventory. No AI-generated certification number, grade, or card artwork is used.
 
 ## Validation performed locally
 
