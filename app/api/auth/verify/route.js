@@ -11,7 +11,9 @@ export async function GET(request) {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "no-store",
-        "Referrer-Policy": "no-referrer",
+        // Same-origin form POSTs need their Origin header for CSRF validation.
+        // Cross-origin requests still receive no referrer, protecting the token.
+        "Referrer-Policy": "same-origin",
         "Content-Security-Policy":
           "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'",
       },
