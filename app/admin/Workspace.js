@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import PhotoReview from "./PhotoReview";
 import { itemDetails } from "../../lib/site";
 import { STATUSES } from "../../lib/validation";
 export default function Workspace({ authenticated }) {
@@ -272,21 +273,7 @@ export default function Workspace({ authenticated }) {
                     </span>
                   </div>
                 ))}
-                <div className="photo-grid" style={{ marginTop: 22 }}>
-                  {selected.photos.map((p) => (
-                    <a
-                      key={p.index}
-                      href={`/api/admin/photo?id=${selected.id}&index=${p.index}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <img
-                        src={`/api/admin/photo?id=${selected.id}&index=${p.index}`}
-                        alt={`Seller photo ${p.index + 1}`}
-                      />
-                    </a>
-                  ))}
-                </div>
+                <PhotoReview key={selected.id} id={selected.id} photos={selected.photos} />
               </div>
               <form className="panel" onSubmit={save}>
                 <h2>Manage this request</h2>
