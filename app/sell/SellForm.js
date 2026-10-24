@@ -87,6 +87,7 @@ export default function SellForm() {
       }
       const total = askingTotalSchema.safeParse(draft.askingTotal);
       if (!total.success) { setError(total.error.issues[0].message); return; }
+      if (!photos.length) { setError("Add at least one photo of your items before continuing."); return; }
       move(1);
     } else if (step === 1) {
       const result = submissionSchema.safeParse({ ...draft, consent: true });
@@ -113,6 +114,7 @@ export default function SellForm() {
   async function send(e) {
     e.preventDefault();
     if (busy || preparing) return;
+    if (!photos.length) { move(0); setError("Add at least one photo of your items before sending your request."); return; }
     const parsed = submissionSchema.safeParse(draft);
     if (!parsed.success) {
       setError(
@@ -346,14 +348,15 @@ export default function SellForm() {
               </label>
             </section>
             <section className="panel">
-              <h2>Photos help us make an offer.</h2>
+              <h2>Add photos of your items.</h2>
               <p>
-                Include the front and back of cards, or the packaging and factory seals of sealed products. Photos are optional to start.
+                Include the front and back of cards, or the packaging and factory seals of sealed products. At least one photo is required to submit your request.
               </p>
               <label className="field">
-                Choose photos
+                Choose photos (required)
                 <input
                   ref={files}
+                  required={photos.length === 0}
                   type="file"
                   multiple
                   accept="image/jpeg,image/png,image/webp"
@@ -361,7 +364,7 @@ export default function SellForm() {
                   disabled={preparing}
                 />
                 <small>
-                  Up to 8 photos. JPG, PNG or WebP. We resize them for a faster upload. Photos must be selected again if you leave this page.
+                  1–8 photos required. JPG, PNG or WebP. We resize them for a faster upload. Photos must be selected again if you leave this page.
                 </small>
               </label>
               {preparing && <p className="hint" role="status">Preparing your photos…</p>}

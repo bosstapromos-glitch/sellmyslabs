@@ -79,6 +79,11 @@ export async function POST(request) {
         reference: d.id.slice(0, 8).toUpperCase(),
       });
     const files = form.getAll("photos");
+    if (files.length === 0)
+      return Response.json(
+        { error: "Add at least one photo of your items before sending your request." },
+        { status: 400 },
+      );
     if (files.length > 8)
       return Response.json(
         { error: "You can add up to 8 photos per request." },
