@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import PhotoReview from "./PhotoReview";
+import SlabResearch from "./SlabResearch";
 import { itemDetails } from "../../lib/site";
 import { STATUSES } from "../../lib/validation";
 export default function Workspace({ authenticated }) {
@@ -274,6 +275,7 @@ export default function Workspace({ authenticated }) {
                   </div>
                 ))}
                 <PhotoReview key={selected.id} id={selected.id} photos={selected.photos} />
+                <SlabResearch cards={selected.cards} />
               </div>
               <form className="panel" onSubmit={save}>
                 <h2>Manage this request</h2>
