@@ -131,3 +131,39 @@ test("Postgres schema persists requests, prevents duplicate IDs, saves offers an
     await db.close();
   }
 });
+
+test("total asking price is optional, bounded and separate from a shop offer", async () => {
+  assert.equal(submissionSchema.parse(request).askingTotal, "");
+  assert.equal(submissionSchema.parse({ ...request, askingTotal: " 350.50 " }).askingTotal, "350.50");
+  for (const askingTotal of ["-1", "0", "1e3", "abc", "12.345", "1000000000000", 350]) {
+    assert.equal(submissionSchema.safeParse({ ...request, askingTotal }).success, false);
+  }
+  const db = new PGlite();
+  try {
+    const schema = await readFile(new URL("../scripts/schema.sql", import.meta.url), "utf8");
+    await db.exec(schema);
+    await db.query("INSERT INTO submissions(id,seller_name,email,cards,asking_total) VALUES($1,$2,$3,$4,$5)", [request.id, request.name, request.email, JSON.stringify(request.cards), "350.50"]);
+    await db.exec(schema);
+    const { rows } = await db.query("SELECT asking_total,offer,offer_version FROM submissions WHERE id=$1", [request.id]);
+    assert.equal(Number(rows[0].asking_total), 350.5);
+    assert.equal(rows[0].offer, null);
+    assert.equal(rows[0].offer_version, 0);
+    assert.equal((await db.query("SELECT * FROM offer_emails")).rows.length, 0);
+  } finally { await db.close(); }
+});
+
+test("raw and sealed items need no grading details; legacy slabs still do", () => {
+  for (const itemType of ["Raw card", "Sealed product"]) {
+    const parsed = submissionSchema.parse({ ...request, cards: [{ ...card, itemType, grader: '', grade: '', condition: 'Light wear to packaging' }] });
+    assert.equal(parsed.cards[0].itemType, itemType);
+    assert.equal(parsed.cards[0].condition, 'Light wear to packaging');
+    const switched = submissionSchema.parse({ ...request, cards: [{ ...card, itemType }] });
+    assert.equal(switched.cards[0].grader, '');
+    assert.equal(switched.cards[0].grade, '');
+  }
+  assert.equal(submissionSchema.safeParse({ ...request, cards: [{ ...card, grader: '', grade: '' }] }).success, false);
+  assert.equal(submissionSchema.safeParse({ ...request, cards: [{ ...card, itemType: 'Unknown' }] }).success, false);
+  const mixed = importCards('name,category,item_type,grader,grade,quantity,condition\nCharizard,Pokémon,Graded card,TAG,9,1,\nPikachu,Pokémon,Raw card,,,2,Edge wear\nBooster box,Pokémon,Sealed product,,,1,Factory sealed\n');
+  assert.deepEqual(mixed.map(c => c.itemType), ['Graded card','Raw card','Sealed product']);
+  assert.equal(mixed[2].grader, '');
+});

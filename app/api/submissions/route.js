@@ -123,7 +123,7 @@ export async function POST(request) {
       });
     }
     const inserted =
-      await sql`INSERT INTO submissions(id,seller_name,email,phone,seller_notes,cards,photos) VALUES(${d.id},${d.name},${d.email},${d.phone},${d.notes},${JSON.stringify(d.cards)}::jsonb,${JSON.stringify(uploaded)}::jsonb) ON CONFLICT(id) DO NOTHING RETURNING id`;
+      await sql`INSERT INTO submissions(id,seller_name,email,phone,seller_notes,cards,photos,asking_total) VALUES(${d.id},${d.name},${d.email},${d.phone},${d.notes},${JSON.stringify(d.cards)}::jsonb,${JSON.stringify(uploaded)}::jsonb,${d.askingTotal || null}) ON CONFLICT(id) DO NOTHING RETURNING id`;
     saved = inserted.length > 0;
     if (!saved && uploaded.length) await del(uploaded.map((p) => p.url));
     after(async () => {

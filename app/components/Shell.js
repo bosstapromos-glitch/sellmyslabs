@@ -28,7 +28,7 @@ export function Footer() {
         <div>
           <Brand />
           <p>
-            Graded cards. Real people.
+            Cards & collectibles. Real people.
             <br />
             Operated by {BUSINESS.name}.
           </p>

@@ -18,3 +18,5 @@ CREATE TABLE IF NOT EXISTS offer_emails (
  error text, UNIQUE(submission_id,version)
 );
 CREATE INDEX IF NOT EXISTS offer_emails_submission ON offer_emails(submission_id,created_at DESC);
+
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS asking_total numeric(14,2) CHECK(asking_total > 0);

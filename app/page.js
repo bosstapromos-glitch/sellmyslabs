@@ -1,10 +1,20 @@
 import Image from "next/image";
+import GoogleReviews from "./components/GoogleReviews";
+export const metadata = { alternates: { canonical: "/" } };
+const businessData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "WebSite", "@id": "https://www.sellmyslabs.net/#website", name: "SellMySlabs", url: "https://www.sellmyslabs.net", publisher: { "@id": "https://www.sellmyslabs.net/#shop" } },
+    { "@type": "Store", "@id": "https://www.sellmyslabs.net/#shop", name: "Lifestyle Cards & Collectibles", alternateName: "SellMySlabs", url: "https://www.sellmyslabs.net", telephone: "+1-208-613-5529", email: "lifestylecardandcollectibles@gmail.com", image: "https://www.sellmyslabs.net/opengraph-image", description: "Trading card shop in Twin Falls, Idaho. Buy and sell graded cards, raw cards and sealed products through SellMySlabs.", address: { "@type": "PostalAddress", streetAddress: "1339 Filer Ave E, Unit B", addressLocality: "Twin Falls", addressRegion: "ID", postalCode: "83301", addressCountry: "US" }, sameAs: ["https://share.google/e0YnqDkZi036YkURF"] }
+  ]
+};
 import { Header, Footer } from "./components/Shell";
 import Icon from "./components/Icon";
 import { BUSINESS, GRADERS, FAQS } from "../lib/site";
 export default function Home() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(businessData).replace(/</g, "\\u003c") }} />
       <Header />
       <main id="main">
         <section className="hero wrap">
@@ -18,8 +28,9 @@ export default function Home() {
               <span>A simpler sale.</span>
             </h1>
             <p className="lead">
-              Turn your graded cards into your next possibility. Share your
-              slabs. Get a personal offer from a real card shop.
+              Sell your graded cards, raw Pokémon and sports cards, or sealed products with a personal offer
+              from Lifestyle Cards & Collectibles in Twin Falls, Idaho. One card
+              or a whole collection—we’ll help you take the next step.
             </p>
             <div className="actions">
               <a className="button" href="/sell">
@@ -30,10 +41,10 @@ export default function Home() {
               </a>
             </div>
             <p className="micro">
-              One card or a collection. No obligation to sell.
+              Graded cards. Raw cards. Sealed products. No obligation to sell.
             </p>
             <div className="accepted">
-              <span>WE ACCEPT</span>
+              <span>GRADED CARDS WE ACCEPT</span>
               <div>
                 {GRADERS.map((g) => (
                   <strong key={g}>
@@ -88,20 +99,20 @@ export default function Home() {
               [
                 "cards",
                 "01",
-                "Show us your slabs",
-                "Add your card details and photos. Sending a collection? Keep everything in one request.",
+                "Show us what you have",
+                "Add your card or sealed-product details and photos. Sending a collection? Keep everything in one request.",
               ],
               [
                 "offer",
                 "02",
                 "Review your offer",
-                "Our team reviews your cards and gets in touch. You decide whether the offer works for you.",
+                "Our team reviews your items and gets in touch. You decide whether the offer works for you.",
               ],
               [
                 "box",
                 "03",
                 "Agree the details",
-                "Confirm shipping, inspection and payment with us before sending your cards.",
+                "Confirm shipping, inspection and payment with us before sending your items.",
               ],
             ].map(([icon, n, title, copy]) => (
               <article key={n}>
@@ -116,7 +127,7 @@ export default function Home() {
           </div>
           <div className="center">
             <a className="button" href="/sell">
-              Start with my cards
+              Start my request
             </a>
           </div>
         </section>
@@ -159,6 +170,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        <GoogleReviews />
         <section className="section wrap faq-grid" id="faq">
           <div>
             <span className="eyebrow">A LITTLE MORE CLARITY</span>

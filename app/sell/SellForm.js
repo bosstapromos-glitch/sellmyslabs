@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { GRADERS, CATEGORIES, BUSINESS } from "../../lib/site";
-import { submissionSchema, cardSchema } from "../../lib/validation";
+import { GRADERS, CATEGORIES, BUSINESS, ITEM_TYPES, itemDetails } from "../../lib/site";
+import { submissionSchema, cardSchema, askingTotalSchema } from "../../lib/validation";
 import { preparePhoto } from "../../lib/prepare-photo";
 import { importCards } from "../../lib/import-cards";
 const emptyCard = () => ({
+  itemType: "Graded card",
+  condition: "",
   name: "",
   category: "Pokémon",
   grader: "PSA",
@@ -19,6 +21,7 @@ const emptyDraft = () => ({
   email: "",
   phone: "",
   notes: "",
+  askingTotal: "",
   cards: [emptyCard()],
   consent: false,
   website: "",
@@ -78,10 +81,12 @@ export default function SellForm() {
       for (let i = 0; i < draft.cards.length; i++) {
         const result = cardSchema.safeParse(draft.cards[i]);
         if (!result.success) {
-          setError(`Card ${i + 1}: ${result.error.issues[0].message}`);
+          setError(`Item ${i + 1}: ${result.error.issues[0].message}`);
           return;
         }
       }
+      const total = askingTotalSchema.safeParse(draft.askingTotal);
+      if (!total.success) { setError(total.error.issues[0].message); return; }
       move(1);
     } else if (step === 1) {
       const result = submissionSchema.safeParse({ ...draft, consent: true });
@@ -142,14 +147,14 @@ export default function SellForm() {
     return (
       <section className="panel" aria-live="polite">
         <span className="eyebrow">REQUEST RECEIVED</span>
-        <h2>Your cards are with our team.</h2>
+        <h2>Your request is with our team.</h2>
         <p>
           Your reference is <strong>{reference}</strong>. We’ll reply to{" "}
           <strong>{draft.email}</strong> with an offer or an update.
         </p>
         <p>
           Please wait for agreed shipping and payment details before sending any
-          cards.
+          items.
         </p>
         <a className="button" href="/">
           Back to home
@@ -159,7 +164,7 @@ export default function SellForm() {
   return (
     <>
       <div className="progress" aria-label="Request progress">
-        {["Your cards", "About you", "Review & send"].map((label, i) => (
+        {["Your items", "About you", "Review & send"].map((label, i) => (
           <span
             key={label}
             className={step === i ? "active" : ""}
@@ -170,14 +175,14 @@ export default function SellForm() {
         ))}
       </div>
       <h2 className="sr-only" ref={heading} tabIndex={-1}>
-        {["Your cards", "About you", "Review your request"][step]}
+        {["Your items", "About you", "Review your request"][step]}
       </h2>
       <form onSubmit={step < 2 ? next : send}>
         {step === 0 && (
           <>
             <details>
               <summary>
-                Have a spreadsheet? Import your cards
+                Have a spreadsheet? Import your items
                 <span aria-hidden="true">+</span>
               </summary>
               <p className="hint">
@@ -189,7 +194,7 @@ export default function SellForm() {
                 >
                   CSV template
                 </a>
-                . Up to 50 rows. Imported cards replace the current card list;
+                . Up to 50 rows. Imported items replace the current item list;
                 your contact details stay saved.
               </p>
               <label className="field">
@@ -218,7 +223,7 @@ export default function SellForm() {
             {draft.cards.map((c, i) => (
               <section className="panel" key={i}>
                 <div className="card-heading">
-                  <h2>Card {i + 1}</h2>
+                  <h2>Item {i + 1}</h2>
                   {draft.cards.length > 1 && (
                     <button
                       type="button"
@@ -230,19 +235,25 @@ export default function SellForm() {
                         )
                       }
                     >
-                      Remove card {i + 1}
+                      Remove item {i + 1}
                     </button>
                   )}
                 </div>
                 <div className="field-grid">
                   <label className="field full">
-                    Card name & set
+                    Item type
+                    <select value={c.itemType || "Graded card"} onChange={(e) => card(i, "itemType", e.target.value)}>
+                      {ITEM_TYPES.map((type) => <option key={type}>{type}</option>)}
+                    </select>
+                  </label>
+                  <label className="field full">
+                    {c.itemType === "Sealed product" ? "Product name & set" : "Card name & set"}
                     <input
                       required
                       maxLength={180}
                       value={c.name}
                       onChange={(e) => card(i, "name", e.target.value)}
-                      placeholder="e.g. Charizard ex · Obsidian Flames · #223"
+                      placeholder={c.itemType === "Sealed product" ? "e.g. Pokémon booster box · set name" : "e.g. Charizard ex · Obsidian Flames · #223"}
                     />
                   </label>
                   <label className="field">
@@ -256,6 +267,7 @@ export default function SellForm() {
                       ))}
                     </select>
                   </label>
+                  {(!c.itemType || c.itemType === "Graded card") && <>
                   <label className="field">
                     Grading company
                     <select
@@ -277,6 +289,7 @@ export default function SellForm() {
                       placeholder="e.g. 10 or 9.5"
                     />
                   </label>
+                  </>}
                   <label className="field">
                     Quantity
                     <input
@@ -288,16 +301,16 @@ export default function SellForm() {
                       onChange={(e) => card(i, "quantity", e.target.value)}
                     />
                   </label>
-                  <label className="field">
+                  {(!c.itemType || c.itemType === "Graded card") && <label className="field">
                     Certification number <small>Optional</small>
                     <input
                       maxLength={80}
                       value={c.cert}
                       onChange={(e) => card(i, "cert", e.target.value)}
                     />
-                  </label>
+                  </label>}
                   <label className="field">
-                    Asking price per card (USD) <small>Optional</small>
+                    Asking price per item (USD) <small>Optional</small>
                     <input
                       inputMode="decimal"
                       maxLength={20}
@@ -306,6 +319,11 @@ export default function SellForm() {
                       placeholder="No price in mind? Leave blank."
                     />
                   </label>
+                  {c.itemType && c.itemType !== "Graded card" && <label className="field full">
+                    Condition notes <small>Optional</small>
+                    <textarea maxLength={500} value={c.condition || ""} onChange={(e) => card(i, "condition", e.target.value)}
+                      placeholder={c.itemType === "Sealed product" ? "Tell us about the factory seal, packaging and any dents or tears." : "Tell us about corners, edges, surface wear or damage."} />
+                  </label>}
                 </div>
               </section>
             ))}
@@ -315,13 +333,22 @@ export default function SellForm() {
               disabled={draft.cards.length >= 50}
               onClick={() => update("cards", [...draft.cards, emptyCard()])}
             >
-              Add another card
+              Add another item
             </button>
+            <section className="panel">
+              <h2>What are you hoping to get?</h2>
+              <label className="field">
+                Total asking price (USD) <small>Optional</small>
+                <input inputMode="decimal" maxLength={20} value={draft.askingTotal}
+                  onChange={(e) => update("askingTotal", e.target.value)}
+                  placeholder="e.g. 500.00" aria-describedby="asking-total-help" />
+                <small id="asking-total-help">Your target for all items in this request combined. Leave blank if you’re open to an offer. This is not added to your per-item prices.</small>
+              </label>
+            </section>
             <section className="panel">
               <h2>Photos help us make an offer.</h2>
               <p>
-                Include the front and back of your slabs. Photos are optional to
-                start.
+                Include the front and back of cards, or the packaging and factory seals of sealed products. Photos are optional to start.
               </p>
               <label className="field">
                 Choose photos
@@ -346,7 +373,7 @@ export default function SellForm() {
               )}
             </section>
             <p className="hint">
-              Large collection? Add representative cards and describe the rest
+              Large collection? Add representative items and describe the rest
               in your notes on the next step.
             </p>
           </>
@@ -394,7 +421,7 @@ export default function SellForm() {
                   maxLength={4000}
                   value={draft.notes}
                   onChange={(e) => update("notes", e.target.value)}
-                  placeholder="Collection details, slab damage, or questions for our team."
+                  placeholder="Collection details, condition, or questions for our team."
                 />
               </label>
             </div>
@@ -404,13 +431,13 @@ export default function SellForm() {
           <>
             <section className="panel">
               <div className="card-heading">
-                <h2>Your cards</h2>
+                <h2>Your items</h2>
                 <button
                   type="button"
                   className="plain-button"
                   onClick={() => move(0)}
                 >
-                  Edit cards
+                  Edit items
                 </button>
               </div>
               {draft.cards.map((c, i) => (
@@ -419,8 +446,8 @@ export default function SellForm() {
                     <strong>{c.name}</strong>
                     <br />
                     <span>
-                      {c.category} · {c.grader} {c.grade} · Qty {c.quantity}
-                      {c.cert && ` · Cert ${c.cert}`}
+                      {c.category} · {itemDetails(c)} · Qty {c.quantity}
+                      {(!c.itemType || c.itemType === "Graded card") && c.cert && ` · Cert ${c.cert}`}
                     </span>
                   </div>
                   <span>
@@ -430,6 +457,9 @@ export default function SellForm() {
                   </span>
                 </div>
               ))}
+              <p className="asking-total"><strong>Your total asking price:</strong>{" "}
+                {draft.askingTotal ? `$${Number(draft.askingTotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "Open to an offer"}
+              </p>
               <p className="hint">{photos.length} photos attached.</p>
             </section>
             <section className="panel">

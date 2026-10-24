@@ -1,2 +1,4 @@
-name,category,grader,grade,cert,quantity,asking
-Charizard ex #223 Obsidian Flames,Pokémon,TAG,9,,1,
+name,category,item_type,grader,grade,cert,quantity,asking,condition
+Charizard ex #223 Obsidian Flames,Pokémon,Graded card,TAG,9,,1,,
+Pikachu,Pokémon,Raw card,,,,1,,Light edge wear
+Booster box - enter set name,Pokémon,Sealed product,,,,1,,Factory sealed

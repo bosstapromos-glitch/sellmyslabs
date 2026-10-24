@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { itemDetails } from "../../lib/site";
 import { STATUSES } from "../../lib/validation";
 export default function Workspace({ authenticated }) {
   const [email, setEmail] = useState("");
@@ -203,7 +204,7 @@ export default function Workspace({ authenticated }) {
               <strong>{s.seller_name}</strong>
               <small>
                 {new Date(s.created_at).toLocaleDateString()} · {s.card_count}{" "}
-                card entries
+                item entries
               </small>
               <span className="badge">{s.status}</span>
               {!s.notified_at && <small>Notification pending</small>}
@@ -245,6 +246,9 @@ export default function Workspace({ authenticated }) {
                 <p className="hint">
                   Received {new Date(selected.created_at).toLocaleString()}
                 </p>
+                <p className="asking-total"><strong>Seller’s total asking price:</strong>{" "}
+                  {selected.asking_total != null ? `$${Number(selected.asking_total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "Not specified · open to an offer"}
+                </p>
                 {selected.seller_notes && (
                   <p style={{ whiteSpace: "pre-wrap" }}>
                     {selected.seller_notes}
@@ -252,14 +256,14 @@ export default function Workspace({ authenticated }) {
                 )}
               </div>
               <div className="panel">
-                <h2>Cards to review</h2>
+                <h2>Items to review</h2>
                 {selected.cards.map((c, i) => (
                   <div className="review-row" key={i}>
                     <div>
                       <strong>{c.name}</strong>
                       <br />
                       <span>
-                        {c.category} · {c.grader} {c.grade} · Qty {c.quantity}
+                        {c.category} · {itemDetails(c)} · Qty {c.quantity}
                         {c.cert && ` · Cert ${c.cert}`}
                       </span>
                     </div>
@@ -328,7 +332,7 @@ export default function Workspace({ authenticated }) {
                 </div>
                 </fieldset>
                 <p className="hint">
-                  Saving a new or changed price emails the total offer and card list to {selected.email}.
+                  Saving a new or changed price emails the total offer and item list to {selected.email}.
                   Their replies go to jt@nxtdeal.co. Notes and status changes stay private.
                 </p>
                 <button className="button" disabled={busy}>

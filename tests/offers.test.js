@@ -65,3 +65,15 @@ test('price changes enqueue once, stale saves fail, notes do not resend, retries
     assert.equal((await claim(next.queued_email)).length, 0, 'Do not send an outdated offer');
   } finally { await db.close(); }
 });
+
+test('mixed offers describe raw cards and sealed products without fake grades', () => {
+  const mixed = offerMessage({ ...submission, cards: [
+    ...submission.cards,
+    { name: 'Pikachu', itemType: 'Raw card', condition: 'Edge wear', quantity: 1 },
+    { name: 'Booster box', itemType: 'Sealed product', condition: 'Factory sealed', quantity: 1 },
+  ] }, '500', { from: 'requests@example.com', replyTo: 'owner@example.com', site: 'https://example.com' });
+  assert.match(mixed.text, /\$500.00 total for all 4 items/);
+  assert.match(mixed.text, /Pikachu — Raw card · Edge wear/);
+  assert.match(mixed.text, /Booster box — Sealed product · Factory sealed/);
+  assert.ok(!mixed.text.includes('undefined'));
+});

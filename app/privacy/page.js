@@ -1,6 +1,20 @@
 import { Header, Footer } from "../components/Shell";
 import { BUSINESS } from "../../lib/site";
-export const metadata = { title: "Privacy notice" };
+export const metadata = {
+  "title": "Privacy Notice",
+  "description": "How SellMySlabs handles your contact details, card photos, asking prices and submissions. Learn about your privacy choices and how to contact our shop.",
+  "alternates": {
+    "canonical": "/privacy"
+  },
+  "openGraph": {
+    "title": "Privacy Notice | SellMySlabs",
+    "description": "How SellMySlabs handles your contact details, card photos, asking prices and submissions. Learn about your privacy choices and how to contact our shop.",
+    "url": "/privacy",
+    "type": "website",
+    "siteName": "SellMySlabs",
+    "images": [{ "url": "/opengraph-image", "width": 1200, "height": 630, "alt": "SellMySlabs — Sell your graded cards" }]
+  }
+};
 export default function Page() {
   return (
     <>
@@ -14,13 +28,13 @@ export default function Page() {
         </p>
         <h2>What we collect</h2>
         <p>
-          We collect the name, email, optional phone number, card details, notes
+          We collect the name, email, optional phone number, card and product details, asking prices, notes
           and photos you submit. The website also uses limited request
           information to protect forms against abuse.
         </p>
         <h2>How we use it</h2>
         <p>
-          We use your information to evaluate your cards, contact you about your
+          We use your information to evaluate your items, contact you about your
           request, and manage a potential purchase. Sending a request is not a
           subscription to marketing messages.
         </p>
