@@ -12,7 +12,7 @@ export const metadata = {
     "url": "/privacy",
     "type": "website",
     "siteName": "SellMySlabs",
-    "images": [{ "url": "/opengraph-image", "width": 1200, "height": 630, "alt": "SellMySlabs — Sell your graded cards" }]
+    "images": [{ "url": "/opengraph-image?v=2", "width": 1200, "height": 630, "alt": "SellMySlabs — Graded cards, raw cards and sealed products" }]
   }
 };
 export default function Page() {

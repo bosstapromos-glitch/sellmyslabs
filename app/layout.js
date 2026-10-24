@@ -7,13 +7,13 @@ export const metadata = {
   },
   description:
     "Sell graded cards, raw Pokémon and sports cards, and sealed products to Lifestyle Cards & Collectibles in Twin Falls, Idaho. Request a personal offer.",
-  twitter: { card: "summary_large_image", images: ["/opengraph-image"] },
+  twitter: { card: "summary_large_image", images: ["/opengraph-image?v=2"] },
   icons: { icon: "/favicon.svg" },
   openGraph: {
-    title: "Great cards. A simpler sale.",
+    title: "SellMySlabs | We buy cards & sealed products",
     description: "Request an offer for graded cards, raw cards and sealed products.",
     url: "https://www.sellmyslabs.net",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "SellMySlabs — Sell your graded cards" }],
+    images: [{ url: "/opengraph-image?v=2", width: 1200, height: 630, alt: "SellMySlabs — Graded cards, raw cards and sealed products" }],
     type: "website",
     siteName: "SellMySlabs",
     locale: "en_US",

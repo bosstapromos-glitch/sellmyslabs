@@ -1,12 +1,31 @@
 import { ImageResponse } from "next/og";
-export const alt = "SellMySlabs — Sell cards and sealed products to Lifestyle Cards & Collectibles";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { Mark } from "./components/Brand";
+
+export const alt = "SellMySlabs — We buy graded cards, raw cards and sealed products";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export default function Image() {
-  return new ImageResponse(<div style={{ width: "100%", height: "100%", background: "#f3f8ff", padding: 76, display: "flex", flexDirection: "column", justifyContent: "space-between", fontFamily: "sans-serif", color: "#102b4f", borderBottom: "16px solid #1768df" }}>
-    <div style={{ display: "flex", fontSize: 36, fontWeight: 700, color: "#1768df" }}>SellMySlabs</div>
-    <div style={{ display: "flex", flexDirection: "column", fontSize: 72, fontWeight: 700, lineHeight: 1.1 }}><span>Great cards.</span><span>A simpler sale.</span></div>
-    <div style={{ display: "flex", fontSize: 30 }}>Graded cards · Raw cards · Sealed products</div>
-    <div style={{ display: "flex", fontSize: 24 }}>Lifestyle Cards & Collectibles · Twin Falls, Idaho</div>
-  </div>, size);
+
+export default async function Image() {
+  const photo = await readFile(join(process.cwd(), "public/images/tag-charizard.jpg"));
+  return new ImageResponse(
+    <div style={{ display: "flex", width: "100%", height: "100%", background: "#ffffff", fontFamily: "sans-serif" }}>
+      <div style={{ display: "flex", flexDirection: "column", width: 750, padding: "64px 48px 54px 58px", color: "#102b4f", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 18, color: "#2167d5" }}>
+          <Mark size={66} />
+          <span style={{ fontSize: 66, fontWeight: 700, letterSpacing: -3 }}>SellMySlabs</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", fontSize: 88, lineHeight: 1.05, fontWeight: 700, letterSpacing: -4 }}>
+          <span>Sell your</span>
+          <span style={{ color: "#2167d5" }}>collection.</span>
+        </div>
+        <div style={{ display: "flex", fontSize: 32, fontWeight: 700, color: "#52637a" }}>Graded · Raw · Sealed</div>
+      </div>
+      <div style={{ display: "flex", width: 450, height: 630, background: "#0b111a", alignItems: "center", justifyContent: "center", borderLeft: "12px solid #2167d5" }}>
+        <img src={`data:image/jpeg;base64,${photo.toString("base64")}`} width={350} height={622} style={{ objectFit: "contain" }} />
+      </div>
+    </div>,
+    size,
+  );
 }
