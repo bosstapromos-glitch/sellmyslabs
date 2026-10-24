@@ -28,9 +28,8 @@ export default function Home() {
               <span>A simpler sale.</span>
             </h1>
             <p className="lead">
-              Sell your graded cards, raw Pokémon and sports cards, or sealed products with a personal offer
-              from Lifestyle Cards & Collectibles in Twin Falls, Idaho. One card
-              or a whole collection—we’ll help you take the next step.
+              Sell graded cards, raw cards and sealed products. Get a personal
+              offer from our team in Twin Falls, Idaho.
             </p>
             <div className="actions">
               <a className="button" href="/sell">

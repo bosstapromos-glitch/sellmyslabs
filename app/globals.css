@@ -17,7 +17,7 @@ html {
 body {
   margin: 0;
   color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   background: #fff;
   -webkit-font-smoothing: antialiased;
 }
@@ -878,3 +878,98 @@ textarea {
 .photo-inspection-image.actual-size img { max-width: none; max-height: none; }
 @media (max-width: 700px) { .owner-photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .photo-inspection-heading { align-items: flex-start; flex-direction: column; gap: 12px; } }
 @media (max-width: 390px) { .owner-photo-grid { grid-template-columns: 1fr; } }
+
+/* Shared mobile foundations: readable inputs, flexible content and safe areas. */
+input, select, textarea { font-size: 16px; min-width: 0; max-width: 100%; }
+input, select, textarea, button, a, summary { scroll-margin-block: 110px 24px; }
+.button { text-align: center; }
+.button.small, .plain-button { min-height: 44px; }
+.button, .plain-button { flex-shrink: 0; }
+.wrap, .panel, .field, .field-grid > *, .admin-grid > *, .review-row > * { min-width: 0; }
+.panel, .review-row, .inbox-item, .hint, .site-footer a { overflow-wrap: anywhere; }
+.review-row > .button { align-self: center; }
+.header-inner { padding-top: max(18px, env(safe-area-inset-top)); }
+.site-footer { padding-bottom: max(25px, env(safe-area-inset-bottom)); }
+.back-to-inbox { display: none; }
+.request-details { scroll-margin-top: 92px; }
+.request-details:focus { outline: none; }
+.admin-toolbar > label { flex: 1; }
+.admin-toolbar > div { display: flex; align-items: center; gap: 8px; }
+.admin-toolbar input { max-width: none; }
+.photo-upload-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 20px 12px; }
+.attached-photos ul { list-style: none; padding: 0; margin: 0; }
+.attached-photos li { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); padding-block: 8px; }
+.attached-photos li > span { flex: 1; min-width: 0; font-size: 15px; }
+.attached-photos small { display: block; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; margin-top: 4px; }
+.owner-photo-caption .text-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding-inline: 8px; }
+.owner-photo-caption { padding-block: 4px; }
+.photo-inspection { overscroll-behavior: contain; }
+.photo-inspection-heading { margin-bottom: 12px; }
+.photo-inspection-image { overscroll-behavior: contain; }
+.photo-inspection-image:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.photo-inspection-navigation { display: flex; justify-content: space-between; gap: 16px; margin-top: 16px; }
+@media (max-width: 900px) {
+  .admin-grid { grid-template-columns: minmax(0, 1fr); }
+  .admin-grid:not(.detail-open) .request-details { display: none; }
+  .admin-grid.detail-open > aside, .admin-toolbar.detail-open { display: none; }
+  .back-to-inbox { display: inline-flex; min-height: 48px; margin-top: 0; }
+  .admin-page h1 { font-size: clamp(30px, 6vw, 42px); }
+  .admin-grid .field-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .wrap { padding-inline: max(18px, env(safe-area-inset-left)) max(18px, env(safe-area-inset-right)); }
+  .header-inner { padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left)); gap: 10px; }
+  .site-header nav { gap: 0; }
+  .button.small { font-size: 14px; }
+  .header-inner .button.small { padding-inline: 13px; font-size: 12px; }
+  .hero h1 { font-size: clamp(42px, 11vw, 55px); }
+  .hero-art img { max-width: 100%; }
+  .accepted > div { flex-wrap: wrap; gap: 25px; }
+  .actions { flex-wrap: wrap; gap: 14px; }
+  .actions .button { min-height: 50px; }
+  .actions .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+  .panel { padding: 20px; border-radius: 20px; }
+  .form-page, .admin-page { padding-block: 28px max(40px, env(safe-area-inset-bottom)); }
+  .form-page h1, .admin-page h1 { font-size: clamp(30px, 8.5vw, 36px); letter-spacing: -1.3px; }
+  .field-grid { gap: 18px; }
+  .hint, .field small { font-size: 13px; }
+  .progress { gap: 10px; }
+  .progress span { font-size: 12px; }
+  .card-heading { align-items: flex-start; gap: 8px; }
+  .form-actions { gap: 10px; }
+  .form-actions > .button { flex: 1; padding-inline: 14px; }
+  .form-actions > span:empty { display: none; }
+  .photo-upload-actions { display: grid; grid-template-columns: 1fr; }
+  .photo-upload-actions .button { width: 100%; }
+  .admin-toolbar { align-items: stretch; gap: 12px; }
+  .admin-toolbar > label { flex-basis: 100%; }
+  .admin-toolbar > div { width: 100%; justify-content: space-between; }
+  .review-row > .button { align-self: stretch; margin-top: 10px; }
+  .request-details form > .button { width: 100%; }
+  .owner-photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .owner-photo-caption { flex-wrap: wrap; gap: 0; }
+  .owner-photo-caption .text-link { font-size: 13px; }
+  .photo-inspection[open] { display: flex; flex-direction: column; inset: 0; margin: 0; width: 100%; max-width: none; height: 100dvh; max-height: 100dvh; border-radius: 0; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .photo-inspection-heading { flex-direction: row; align-items: center; gap: 12px; }
+  .photo-inspection-heading h2 { font-size: 21px; }
+  .photo-inspection > .hint { margin-bottom: 12px; }
+  .photo-inspection-actions { gap: 10px; margin-bottom: 12px; }
+  .photo-inspection-actions > .button { flex: 1; padding-inline: 10px; }
+  .photo-inspection-image { flex: 1; min-height: 0; max-height: none; }
+  .photo-inspection-image img { width: 100%; height: 100%; object-fit: contain; max-height: none; }
+  .photo-inspection-image.actual-size img { width: auto; height: auto; max-width: none; max-height: none; }
+  .photo-inspection-navigation { flex-shrink: 0; }
+  .footer-bottom a { display: inline-flex; align-items: center; min-height: 44px; }
+}
+@media (max-width: 350px) {
+  .brand { font-size: 17px; gap: 5px; }
+  .header-inner .button.small { font-size: 11px; padding-inline: 10px; }
+  .panel { padding: 16px; }
+  .owner-photo-grid { grid-template-columns: 1fr; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .photo-inspection[open] { height: 100dvh; max-height: 100dvh; }
+  .photo-inspection > .hint { display: none; }
+  .photo-inspection-heading { margin-bottom: 4px; }
+  .photo-inspection-navigation { margin-top: 6px; }
+}

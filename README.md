@@ -52,3 +52,13 @@ Check the public domain after each production deployment. Automated tests cover 
 ## Validation performed locally
 
 Production compilation, schema and input tests, CSV/TAG import, duplicate record prevention, saved offer/status, expired and reused login tokens, and rate-limit increment behavior. Browser checks cover desktop design, form navigation, review, TAG selection, failure messaging and draft recovery. Hosted database, private storage, and email checks are recorded above.
+
+## Mobile and home-screen support
+
+The customer form uses 16px fields, touch-sized buttons, rear-camera capture and incremental photo selection. HEIC/HEIF photos first use native decoding; unsupported browsers load the pinned `heic-to` decoder in a background worker. Processing stays on the device and produces the same bounded JPEG uploads as before. A failed or cancelled selection preserves already attached photos. Photos are not persisted in drafts.
+
+At phone and tablet widths, the owner inbox opens one request at a time with an Inbox return control. Private photos open in a full-height viewer with fit/full-size modes and previous/next controls. Alt links remain owner-only and slab-only; they do not provide automatic values or session monitoring.
+
+The manifest, 512px application icon, Apple touch icon and safe-area spacing support Add to Home Screen. This is an online web app foundation, not an App Store release. There is no service worker or offline storage of private requests/photos. Existing owner session expiry and offer-email behavior are unchanged.
+
+HEIC conversion uses heic-to 1.6.6 (LGPL-3.0-or-later), unmodified. License: `/licenses/heic-to.txt`. Package source: https://registry.npmjs.org/heic-to/-/heic-to-1.6.6.tgz ; upstream source and build instructions: https://github.com/hoppergee/heic-to .

@@ -38,6 +38,7 @@ export default function SellForm() {
   const [reference, setReference] = useState("");
   const heading = useRef(null);
   const files = useRef(null);
+  const camera = useRef(null);
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(KEY));
@@ -101,14 +102,16 @@ export default function SellForm() {
   async function choosePhotos(e) {
     const input = e.target;
     const selected = Array.from(input.files || []);
-    setPhotos([]); setError('');
-    if (selected.length > 8) { setError('Choose up to 8 photos per request.'); input.value=''; return; }
+    input.value = '';
+    if (!selected.length || preparing) return;
+    setError('');
+    if (photos.length + selected.length > 8) { setError('You can add up to 8 photos. Remove one before adding more.'); return; }
     setPreparing(true);
     try {
       const prepared = [];
       for (const file of selected) prepared.push(await preparePhoto(file));
-      setPhotos(prepared);
-    } catch (err) { setError(err.message || 'We could not prepare that photo. Please try a JPG, PNG or WebP.'); input.value=''; }
+      setPhotos(current => [...current, ...prepared]);
+    } catch (err) { setError(err.message || 'We could not prepare that photo. Try another photo. Your previous photos are still attached.'); }
     finally { setPreparing(false); }
   }
   async function send(e) {
@@ -297,6 +300,7 @@ export default function SellForm() {
                     <input
                       required
                       type="number"
+                      inputMode="numeric"
                       min="1"
                       max="10000"
                       value={c.quantity}
@@ -350,29 +354,31 @@ export default function SellForm() {
             <section className="panel">
               <h2>Add photos of your items.</h2>
               <p>
-                Include the front and back of cards, or the packaging and factory seals of sealed products. At least one photo is required to submit your request.
+                Add clear front and back photos, or show the packaging and factory seals.
               </p>
-              <label className="field">
-                Choose photos (required)
+              <div className="photo-upload-actions">
+                <button className="button" type="button" disabled={preparing || photos.length >= 8} onClick={() => camera.current?.click()}>Take a photo</button>
+                <button className="button secondary" type="button" disabled={preparing || photos.length >= 8} onClick={() => files.current?.click()}>Choose photos</button>
                 <input
                   ref={files}
-                  required={photos.length === 0}
+                  hidden
+                  aria-label="Choose photos"
                   type="file"
                   multiple
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
                   onChange={choosePhotos}
                   disabled={preparing}
                 />
-                <small>
-                  1–8 photos required. JPG, PNG or WebP. We resize them for a faster upload. Photos must be selected again if you leave this page.
-                </small>
-              </label>
+                <input ref={camera} hidden aria-label="Take a photo" type="file" capture="environment"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" onChange={choosePhotos} disabled={preparing} />
+              </div>
+              <p className="hint">1–8 photos required · iPhone photos supported. Reloading clears photos.</p>
               {preparing && <p className="hint" role="status">Preparing your photos…</p>}
               {photos.length > 0 && (
-                <p className="hint">
-                  {photos.length} photo{photos.length === 1 ? "" : "s"}{" "}
-                  selected: {photos.map((p) => p.name).join(", ")}
-                </p>
+                <div className="attached-photos">
+                  <p className="hint" role="status">{photos.length} of 8 photos added</p>
+                  <ul>{photos.map((photo, i) => <li key={`${photo.name}-${i}`}><span>Photo {i + 1}<small>{photo.name}</small></span><button type="button" className="plain-button" disabled={preparing} aria-label={`Remove photo ${i + 1}`} onClick={() => setPhotos(current => current.filter((_, index) => index !== i))}>Remove</button></li>)}</ul>
+                </div>
               )}
             </section>
             <p className="hint">
@@ -560,6 +566,7 @@ export default function SellForm() {
         <button
           type="button"
           className="plain-button"
+          disabled={busy || preparing}
           onClick={() => {
             setDraft({ ...emptyDraft(), id: crypto.randomUUID() });
             setPhotos([]);

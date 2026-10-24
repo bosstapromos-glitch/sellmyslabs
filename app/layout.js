@@ -1,4 +1,10 @@
 import "./globals.css";
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#ffffff",
+};
 export const metadata = {
   metadataBase: new URL("https://www.sellmyslabs.net"),
   title: {
@@ -9,6 +15,9 @@ export const metadata = {
     "Sell graded cards, raw Pokémon and sports cards, and sealed products to Lifestyle Cards & Collectibles in Twin Falls, Idaho. Request a personal offer.",
   twitter: { card: "summary_large_image", images: ["/opengraph-image?v=2"] },
   icons: { icon: "/favicon.svg" },
+  applicationName: "SellMySlabs",
+  appleWebApp: { capable: true, title: "SellMySlabs", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
   openGraph: {
     title: "SellMySlabs | We buy cards & sealed products",
     description: "Request an offer for graded cards, raw cards and sealed products.",

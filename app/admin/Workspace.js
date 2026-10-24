@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import PhotoReview from "./PhotoReview";
 import SlabResearch from "./SlabResearch";
 import { itemDetails } from "../../lib/site";
@@ -16,6 +16,10 @@ export default function Workspace({ authenticated }) {
   const [notes, setNotes] = useState("");
   const [offer, setOffer] = useState("");
   const [saved, setSaved] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const details = useRef(null);
+  const requestSequence = useRef(0);
   const refresh = useCallback(async () => {
     const r = await fetch("/api/admin/submissions");
     const d = await r.json();
@@ -23,20 +27,38 @@ export default function Workspace({ authenticated }) {
     setList(d.submissions);
   }, []);
   async function open(id) {
+    const sequence = ++requestSequence.current;
+    setDetailOpen(true);
+    setLoading(true);
     setError("");
     setSaved(false);
     setSelected(null);
     try {
       const r = await fetch(`/api/admin/submissions?id=${id}`);
       const d = await r.json();
+      if (sequence !== requestSequence.current) return;
       if (!r.ok) throw Error(d.error);
       setSelected(d.submission);
       setStatus(d.submission.status);
       setNotes(d.submission.internal_notes);
       setOffer(d.submission.offer ?? "");
     } catch (e) {
-      setError(e.message);
+      if (sequence === requestSequence.current) setError(e.message);
+    } finally {
+      if (sequence === requestSequence.current) setLoading(false);
     }
+  }
+  useEffect(() => {
+    if (detailOpen && window.matchMedia("(max-width: 900px)").matches) {
+      details.current?.focus({ preventScroll: true });
+      details.current?.scrollIntoView({ block: "start" });
+    }
+  }, [detailOpen]);
+  function backToInbox() {
+    requestSequence.current++;
+    setLoading(false);
+    setDetailOpen(false);
+    requestAnimationFrame(() => document.querySelector(".inbox-item.active, .admin-search")?.focus());
   }
   useEffect(() => {
     if (authenticated) {
@@ -161,10 +183,12 @@ export default function Workspace({ authenticated }) {
   );
   return (
     <>
-      <div className="admin-toolbar">
+      <div className={`admin-toolbar${detailOpen ? " detail-open" : ""}`}>
         <label>
           <span className="sr-only">Search requests</span>
           <input
+            className="admin-search"
+            type="search"
             placeholder="Search by name, reference or status"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
@@ -193,7 +217,7 @@ export default function Workspace({ authenticated }) {
           {error}
         </div>
       )}
-      <div className="admin-grid">
+      <div className={`admin-grid${detailOpen ? " detail-open" : ""}`}>
         <aside aria-label="Submissions">
           <p className="hint">{filtered.length} requests · newest first</p>
           {filtered.map((s) => (
@@ -218,8 +242,9 @@ export default function Workspace({ authenticated }) {
             </div>
           )}
         </aside>
-        <section aria-label="Request details">
-          {!selected ? (
+        <section ref={details} tabIndex={-1} className="request-details" aria-label="Request details" aria-busy={loading}>
+          <button type="button" className="button quiet back-to-inbox" onClick={backToInbox} disabled={busy}>← Inbox</button>
+          {loading ? <p className="panel" role="status">Opening request…</p> : !selected ? (
             <div className="panel">
               <h2>Everything in one place.</h2>
               <p>
