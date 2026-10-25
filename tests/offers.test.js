@@ -10,6 +10,17 @@ import { updateSchema } from '../lib/validation';
 const id = randomUUID();
 const submission = { id, seller_name: 'Test Seller', email: 'seller@example.com', internal_notes: 'NEVER EMAIL THIS', cards: [{ name: 'Charizard', grader: 'TAG', grade: '9', quantity: 2 }] };
 const payload = offerMessage(submission, '280', { from: 'requests@example.com', replyTo: 'owner@example.com', site: 'https://example.com' });
+test('owner offers accept USD formatting and reject ambiguous prices', () => {
+  const parse = offer => updateSchema.safeParse({ id, status: 'Offer ready', notes: '', offer });
+  for (const [input, expected] of [['$80.00', '80.00'], ['$1,200', '1200'], ['  $ 1,200.50  ', '1200.50'], ['80', '80'], ['  ', '']]) {
+    const result = parse(input);
+    assert.equal(result.success, true, input);
+    assert.equal(result.data.offer, expected);
+  }
+  for (const input of ['$0', '$-80', '80.001', '1,20', '80,00', '1.200,50', '$', '€80', '1e3', '$1000000000000', 'NaN']) {
+    assert.equal(parse(input).success, false, input);
+  }
+});
 test('seller offer uses total price, quantities and owner reply address without private notes', () => {
   assert.deepEqual(payload.to, ['seller@example.com']);
   assert.equal(payload.reply_to, 'owner@example.com');

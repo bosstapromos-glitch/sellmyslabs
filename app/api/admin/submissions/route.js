@@ -54,7 +54,7 @@ export async function PATCH(request) {
     const parsed = updateSchema.safeParse(await request.json());
     if (!parsed.success)
       return Response.json(
-        { error: "Check the status, offer and notes." },
+        { error: parsed.error.issues.find(issue => issue.path[0] === "offer")?.message || "Check the status and private notes, then try again." },
         { status: 400 },
       );
     const d = parsed.data;

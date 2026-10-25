@@ -4,6 +4,7 @@ import PhotoReview from "./PhotoReview";
 import SlabResearch from "./SlabResearch";
 import { itemDetails } from "../../lib/site";
 import { STATUSES } from "../../lib/validation";
+import { normalizeOfferPrice, OFFER_PRICE_ERROR } from "../../lib/offer-price";
 export default function Workspace({ authenticated }) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -91,6 +92,11 @@ export default function Workspace({ authenticated }) {
   }
   async function save(e) {
     e.preventDefault();
+    if (normalizeOfferPrice(String(offer)) === null) {
+      setSaved(false);
+      setError(OFFER_PRICE_ERROR);
+      return;
+    }
     setBusy(true);
     setError("");
     setSaved(false);
@@ -109,6 +115,7 @@ export default function Workspace({ authenticated }) {
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
       setSelected(current => ({ ...current, ...d.saved, offer_email: d.offer_email }));
+      setOffer(d.saved.offer ?? "");
       setSaved(d.saved.queued_email
         ? (d.offer_email?.status === 'sent' ? 'Offer saved and emailed to the seller.' : 'Offer saved. The email has not been confirmed; check its status below.')
         : 'Changes saved. No new offer email was sent.');
@@ -135,7 +142,8 @@ export default function Workspace({ authenticated }) {
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
-  const changedOffer = selected && offer !== '' && Number(offer) !== Number(selected.offer);
+  const normalizedOffer = normalizeOfferPrice(String(offer));
+  const changedOffer = selected && normalizedOffer !== null && normalizedOffer !== '' && Number(normalizedOffer) !== Number(selected.offer);
   if (!authenticated)
     return (
       <div style={{ maxWidth: 500 }}>
@@ -352,6 +360,7 @@ export default function Workspace({ authenticated }) {
                 <button className="button" disabled={busy}>
                   {busy ? "Saving…" : changedOffer ? "Save & email offer" : "Save changes"}
                 </button>
+                {error && <p className="error" role="alert">{error}</p>}
                 {saved && (
                   <p className="success" role="status">
                     {saved}
