@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import { requestJSON } from "../../../lib/request-json";
 import { money } from "../../../lib/purchase-terms";
 import PurchaseTerms from "../../components/PurchaseTerms";
+import ShippingPanel from "./ShippingPanel";
+import { journeyTime } from "../../../lib/shipping";
 
 export default function OfferReview({ token, initialOffer }) {
   const [offer, setOffer] = useState(initialOffer);
@@ -67,10 +69,7 @@ export default function OfferReview({ token, initialOffer }) {
           <p>
             Accepted by {offer.acceptedName} on{" "}
             <time dateTime={offer.acceptedAt}>
-              {new Date(offer.acceptedAt).toLocaleString("en-US", {
-                timeZone: "UTC",
-              })}{" "}
-              UTC
+              {journeyTime(offer.acceptedAt)} MT
             </time>
             .
           </p>
@@ -81,7 +80,7 @@ export default function OfferReview({ token, initialOffer }) {
           </p>
           <p>
             {offer.isCurrent
-              ? "Before shipping, contact the shop to confirm shipping details."
+              ? "Keep this private link to view your shipping and purchase progress."
               : "A later offer has been issued. This is the record of your earlier acceptance; check the latest offer with the shop before shipping."}
           </p>
         </section>
@@ -98,6 +97,7 @@ export default function OfferReview({ token, initialOffer }) {
           incorrect, contact the shop first.
         </p>
       )}
+      {offer.acceptedAt && offer.isCurrent && <ShippingPanel token={token} />}
       <section className="purchase-summary" aria-label="Offer details">
         <div className="purchase-total">
           <span>Total for the listed collection</span>

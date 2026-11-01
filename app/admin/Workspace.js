@@ -6,6 +6,7 @@ import useUnsavedChanges from "../components/useUnsavedChanges";
 import OfferEmailStatus from "./OfferEmailStatus";
 import OfferContext from "./OfferContext";
 import OfferAcceptance from "./OfferAcceptance";
+import ShipmentProgress from "./ShipmentProgress";
 import PhotoReview from "./PhotoReview";
 import SlabResearch from "./SlabResearch";
 import { itemDetails } from "../../lib/site";
@@ -687,6 +688,31 @@ export default function Workspace({ authenticated }) {
                   onRetryReceipt={retryReceipt}
                 />
               </form>
+              {selected.offer_email?.acceptance?.accepted_at && (
+                <ShipmentProgress
+                  key={selected.offer_email.id}
+                  offerId={selected.offer_email.id}
+                  editVersion={selected.edit_version}
+                  disabled={busy || unsaved}
+                  onBusyChange={setBusy}
+                  onReload={() => open(selected.id, { reload: true })}
+                  onSaved={(data) => {
+                    setSelected((current) => ({
+                      ...current,
+                      edit_version: data.editVersion,
+                      status: data.status,
+                    }));
+                    setStatus(data.status);
+                    setList((current) =>
+                      current.map((item) =>
+                        item.id === selected.id
+                          ? { ...item, status: data.status }
+                          : item,
+                      ),
+                    );
+                  }}
+                />
+              )}
             </>
           )}
         </section>

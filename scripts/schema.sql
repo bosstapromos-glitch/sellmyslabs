@@ -32,3 +32,12 @@ CREATE TABLE IF NOT EXISTS purchase_receipts (
  first_attempt_at timestamptz, locked_until timestamptz, lease_id uuid,
  sent_at timestamptz, provider_id text, error text
 );
+
+CREATE TABLE IF NOT EXISTS purchase_shipments (
+ submission_id uuid PRIMARY KEY REFERENCES submissions(id),
+ carrier text CHECK(carrier IN ('USPS','UPS','FedEx')), tracking text,
+ shipped_at timestamptz, received_at timestamptz, inspected_at timestamptz,
+ inspected_offer_id uuid REFERENCES offer_emails(id),
+ paid_at timestamptz, paid_offer_id uuid REFERENCES offer_emails(id),
+ version integer NOT NULL DEFAULT 0
+);
