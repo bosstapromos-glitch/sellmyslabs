@@ -1586,6 +1586,7 @@ textarea::placeholder {
   font-size: 13px;
   font-weight: 400;
   margin-left: 8px;
+  white-space: nowrap;
 }
 .offer-context .field {
   margin: 16px 0;
