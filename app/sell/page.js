@@ -29,12 +29,6 @@ export default function Page() {
     <>
       <Header context="sell" />
       <main id="main" className="wrap form-page">
-        <span className="eyebrow">REQUEST AN OFFER</span>
-        <h1>What would you like to sell?</h1>
-        <p>
-          Add your items and photos. We’ll review them and email you. No
-          obligation to sell.
-        </p>
         <SellForm />
       </main>
       <Footer compact />

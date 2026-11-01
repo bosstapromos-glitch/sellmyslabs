@@ -285,13 +285,12 @@ export default function Workspace({ authenticated }) {
     return (
       <div style={{ maxWidth: 500 }}>
         <p>
-          Sign in with your owner email. We’ll send you a secure, single-use
-          link.
+          Enter your email and we’ll send you a secure, single-use sign-in link.
         </p>
         {sent ? (
           <div className="success" role="status">
-            If this address has workspace access, a sign-in link is on its way.
-            Check your inbox and spam folder. The link is valid for 15 minutes.
+            If this address has access, a sign-in link is on its way. Check your
+            inbox and spam folder. The link is valid for 15 minutes.
             <button
               type="button"
               className="plain-button"
@@ -303,7 +302,7 @@ export default function Workspace({ authenticated }) {
         ) : (
           <form onSubmit={login} className="panel">
             <label className="field">
-              Owner email
+              Email address
               <input
                 type="email"
                 autoComplete="email"

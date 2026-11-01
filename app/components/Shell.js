@@ -47,9 +47,6 @@ export function Footer({ compact = false }) {
           <a href="/purchase-terms" target="_blank" rel="noopener noreferrer">
             Purchase terms
           </a>
-          <a href="/admin" target="_blank" rel="noopener noreferrer">
-            Staff workspace
-          </a>
         </div>
       </footer>
     );
@@ -85,7 +82,7 @@ export function Footer({ compact = false }) {
         <div>
           <a href="/privacy">Privacy</a>
           <a href="/purchase-terms">Purchase terms</a>
-          <a href="/admin">Staff workspace</a>
+          <a href="/admin">Sign in</a>
         </div>
       </div>
     </footer>

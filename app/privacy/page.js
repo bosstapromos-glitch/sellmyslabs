@@ -65,8 +65,8 @@ export default function Page() {
         <p>
           The request form saves a draft in this browser so you can continue
           later. Photos are not saved in that draft. Use “Clear draft” to remove
-          it, particularly on a shared device. Staff sign-in uses a secure
-          session cookie.
+          it, particularly on a shared device. Sign-in uses a secure session
+          cookie.
         </p>
         <h2>Your choices</h2>
         <p>
