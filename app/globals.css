@@ -1,8 +1,10 @@
 :root {
   --blue: #0071e3;
+  --blue-ink: #005bbb;
   --ink: #1d1d1f;
   --muted: #626871;
   --line: #dfe5ec;
+  --control-line: #7d8999;
   --wash: #f5f7fa;
   --sky: #eaf3ff;
   --white: #fff;
@@ -186,7 +188,7 @@ nav {
   color: var(--ink);
 }
 .text-link {
-  color: var(--blue);
+  color: var(--blue-ink);
   font-weight: 600;
   font-size: 15px;
 }
@@ -209,7 +211,7 @@ a:hover {
 }
 .eyebrow {
   display: block;
-  color: var(--blue);
+  color: var(--blue-ink);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.8px;
@@ -529,11 +531,12 @@ details p {
 input,
 select,
 textarea {
-  border: 1px solid #bcc7d4;
+  border: 1px solid var(--control-line);
   border-radius: var(--radius-control);
   padding: 14px 16px;
   min-height: 48px;
   color: var(--ink);
+  font-weight: 400;
   background: white;
   width: 100%;
 }
@@ -570,7 +573,7 @@ textarea {
 .plain-button {
   background: none;
   border: 0;
-  color: var(--blue);
+  color: var(--blue-ink);
   padding: 10px;
   font-size: 13px;
 }
