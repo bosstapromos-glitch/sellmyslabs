@@ -26,7 +26,8 @@ export default function CombinedValue({snapshot,endpoint,accountId='',context}) 
   },[referenceKey,requestKey,endpoint,accountId]);
   const result=response?.key===requestKey?response.data:null;
   const estimate=snapshot?.estimated_value;
-  const amount=result?.amount??result?.reference_value??estimate?.amount;
+  const needsReview=result?.status==='needs_review';
+  const amount=needsReview?null:result?.amount??result?.reference_value??estimate?.amount;
   // The age belongs to the source data, not to the time we calculated an average.
   const included=result?.sources?.filter(row=>row.included&&row.checked_at)||[];
   const checked=included.length?included.map(row=>row.checked_at).sort()[0]:estimate?.retrieved_at;
@@ -34,6 +35,6 @@ export default function CombinedValue({snapshot,endpoint,accountId='',context}) 
   return <div className="cr-valuation" aria-live="polite">
     <span className="cr-value-label">ESTIMATED VALUE</span>
     <strong className="cr-value-amount">{money(amount)}</strong>
-    <small className="cr-updated">{stale?'Updating · ':''}{checked?`Checked ${new Date(checked).toLocaleDateString()}`:'Checking price…'}</small>
+    <small className="cr-updated">{needsReview?'Price needs review':<>{stale?'Updating · ':''}{checked?`Checked ${new Date(checked).toLocaleDateString()}`:'Checking price…'}</>}</small>
   </div>;
 }
