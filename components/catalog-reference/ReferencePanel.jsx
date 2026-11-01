@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useId, useRef, useState } from 'react';
 import './reference.css';
+import CombinedValue from './CombinedValue';
 
-const money = value => value == null || value === '' || !Number.isFinite(Number(value)) ? 'Unavailable' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value));
-const date = value => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleString() : 'Not supplied';
+const money = value => value == null || value === '' || !Number.isFinite(Number(value)) ? 'Unavailable' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value));
 const saleDate = value => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleDateString(undefined, {timeZone:'UTC'}) : 'Not supplied';
 const safeLink = value => { try { const url = new URL(value); return url.protocol === 'https:' ? url.href : null; } catch { return null; } };
 const saleLabels = {
@@ -18,10 +18,11 @@ export default function ReferencePanel({ endpoint, identity, source = 'ALT', aut
   const prefix = useId(), serial = useRef(0), controller = useRef(null), polls = useRef(0);
   const [query, setQuery] = useState(identity.title || ''), [result, setResult] = useState(null), [snapshot, setSnapshot] = useState(null);
   const [sourceUrl, setSourceUrl] = useState(identity.source_url || '');
-  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [confirmed, setConfirmed] = useState(false);
+  const [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [viewGrade, setViewGrade] = useState({ grading_company: identity.grading_company, grade: identity.grade });
   const identityKey = JSON.stringify(identity);
-  const searchAction = source === 'ALT' ? 'research' : source === 'Collectr' ? 'collectr/search' : 'tcg/search';
+  const activeSource = snapshot?.source || result?.source || source;
+  const searchAction = source === 'ALT' ? 'research' : 'catalog/search';
   async function call(action, payload, quiet = false) {
     controller.current?.abort(); const abort = new AbortController(); controller.current = abort;
     const current = ++serial.current; if (!quiet) { setBusy(true); setError(''); }
@@ -37,18 +38,18 @@ export default function ReferencePanel({ endpoint, identity, source = 'ALT', aut
   }
   async function search() {
     polls.current = 0;
-    setConfirmed(false); setResult(null); setSnapshot(null);
-    const data = await call(searchAction, source === 'ALT' ? { ...identity, title: query, source_url: sourceUrl } : { query, limit: 12 });
+    setResult(null); setSnapshot(null);
+    const data = await call(searchAction, activeSource === 'ALT' ? { ...identity, title: query, source_url: sourceUrl } : { query, limit: 12 });
     if (data) { setResult(data); setSnapshot(data.snapshot || null); }
   }
   useEffect(() => {
     polls.current = 0;
-    setQuery(identity.title || ''); setSourceUrl(identity.source_url || ''); setResult(null); setSnapshot(null); setConfirmed(false);
+    setQuery(identity.title || ''); setSourceUrl(identity.source_url || ''); setResult(null); setSnapshot(null);
     setViewGrade({ grading_company: identity.grading_company, grade: identity.grade });
     let cancelled = false;
     if (autoLoad && identity.title?.length >= 2) {
       const timer = setTimeout(async () => {
-        const data = await call(searchAction, source === 'ALT' ? identity : { query: identity.title, limit: 12 });
+        const data = await call(searchAction, activeSource === 'ALT' ? identity : { query: identity.title, limit: 12 });
         if (!cancelled && data) { setResult(data); setSnapshot(data.snapshot || null); }
       }, 250);
       return () => { cancelled = true; clearTimeout(timer); ++serial.current; controller.current?.abort(); };
@@ -58,20 +59,20 @@ export default function ReferencePanel({ endpoint, identity, source = 'ALT', aut
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identityKey, source, endpoint, accountId, autoLoad]);
   async function choose(card) {
-    setConfirmed(false); setSnapshot(null);
-    const data = await call(source === 'ALT' ? 'lookup' : source === 'Collectr' ? 'collectr/lookup' : 'tcg/lookup', source === 'ALT'
+    setSnapshot(null);
+    const data = await call(activeSource === 'ALT' ? 'lookup' : activeSource === 'Collectr' ? 'collectr/lookup' : 'tcg/lookup', activeSource === 'ALT'
       ? { asset_id: card.id, ...viewGrade, autograph: identity.autograph || null, qualifier: identity.qualifier || null, subgrades: identity.subgrades || {} }
-      : source === 'Collectr' ? {query: result.query, limit: result.limit, product_id: card.product_id, printing: card.printing}
+      : activeSource === 'Collectr' ? {query: result.query, limit: result.limit, product_id: card.product_id, printing: card.printing}
       : { product_id: card.product_id });
     if (data) setSnapshot(data);
   }
   async function compare(value) {
-    const [grading_company, grade] = JSON.parse(value); const selected = { grading_company, grade }; setViewGrade(selected); setConfirmed(false);
+    const [grading_company, grade] = JSON.parse(value); const selected = { grading_company, grade }; setViewGrade(selected);
     const data = await call('lookup', { asset_id: snapshot.asset_id, ...selected, autograph: identity.autograph || null, qualifier: identity.qualifier || null, subgrades: identity.subgrades || {} });
     if (data) setSnapshot(data);
   }
   async function selectSku(value) {
-    setConfirmed(false);
+   
     const data = await call('tcg/lookup', { product_id: snapshot.product_id, sku_id: value ? Number(value) : null });
     if (data) setSnapshot(data);
   }
@@ -82,53 +83,54 @@ export default function ReferencePanel({ endpoint, identity, source = 'ALT', aut
   const refreshing = freshness.some(x => x.refresh_in_progress);
   const grades = snapshot?.available_grade_variants || [];
   const variants = [...new Map(grades.map(g => [JSON.stringify([g.grading_company, g.source_grade_code]), g])).values()].sort((a,b) => a.grading_company.localeCompare(b.grading_company) || Number(b.source_grade_code)-Number(a.source_grade_code));
-  const image = source === 'ALT' ? snapshot?.images?.find(x => safeLink(x.url))?.url : snapshot?.image_url;
+  const image = activeSource === 'ALT' ? snapshot?.images?.find(x => safeLink(x.url))?.url : snapshot?.image_url;
   const submittedGrade = result?.submitted_identity || identity;
-  const comparing = snapshot && source === 'ALT' && (snapshot.grading_company !== submittedGrade.grading_company || Number(snapshot.grade) !== Number(submittedGrade.grade));
+  const comparing = snapshot && activeSource === 'ALT' && (snapshot.grading_company !== submittedGrade.grading_company || Number(snapshot.grade) !== Number(submittedGrade.grade));
   useEffect(() => {
     if (!refreshing || busy || polls.current >= 6 || !snapshot) return;
     const timer = setTimeout(async () => {
       polls.current += 1;
-      const data = await call(source === 'ALT' ? 'lookup' : source === 'Collectr' ? 'collectr/lookup' : 'tcg/lookup', source === 'ALT'
+      const data = await call(activeSource === 'ALT' ? 'lookup' : activeSource === 'Collectr' ? 'collectr/lookup' : 'tcg/lookup', activeSource === 'ALT'
         ? { asset_id: snapshot.asset_id, grading_company: snapshot.grading_company, grade: snapshot.grade, autograph: snapshot.autograph, qualifier: snapshot.qualifier, subgrades: snapshot.subgrades }
-        : source === 'Collectr' ? snapshot.lookup_request
+        : activeSource === 'Collectr' ? snapshot.lookup_request
         : { product_id: snapshot.product_id, sku_id: snapshot.selected_sku?.sku || null }, true);
       if (data) setSnapshot(data);
     }, 5000);
     return () => clearTimeout(timer);
     // Bounded cache reads follow an active refresh; they never force provider reads.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [snapshot, refreshing, busy, source]);
-  return <section className="cr-panel" aria-label={`${source} card research`}>
-    <div className="cr-heading"><strong>{source === 'ALT' ? 'ALT · Graded card research' : source === 'Collectr' ? 'Collectr · Catalog reference' : 'TCGplayer · Ungraded & sealed research'}</strong><span>USD</span></div>
-    {source === 'Collectr' && <p className="cr-notice">Catalog prices are not specific to a condition or slab grade. Use ALT for graded valuations and recent sales.</p>}
-    <div className="cr-search"><label htmlFor={prefix + '-query'}>Card title, set or collector number<input id={prefix + '-query'} value={query} maxLength={240} onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (!busy) void search(); } }} /></label><button type="button" disabled={busy || query.trim().length < 2} onClick={search}>Search</button></div>
-    {busy && <p role="status">{snapshot ? 'Checking this reference…' : 'Finding matches and checking prices…'}</p>}
-    {source === 'ALT' && <label className="cr-field" htmlFor={prefix + '-alt-link'}>ALT listing link (optional)<input id={prefix + '-alt-link'} type="url" maxLength={300} value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} placeholder="https://alt.xyz/itm/…/external" /></label>}
-    {error && <p className="cr-error" role="alert">{error}</p>}
-    {result?.message && <p>{result.message}</p>}
-    {result && !candidates.length && <p>No matching card found. Try the collector number or a shorter set name.</p>}
-    {!!candidates.length && <details className="cr-candidates" open={!snapshot}><summary>{candidates.length} possible {candidates.length === 1 ? 'match' : 'matches'} · check the exact printing</summary>{candidates.map(card => <div className="cr-candidate" key={card.id || `${card.product_id}:${card.printing || ''}`}>
-      <div><b>{card.name}</b><small>{[card.category, card.set, card.card_number && '#' + card.card_number].filter(Boolean).join(' · ')}</small>{card.conflicts?.length > 0 && <small className="cr-error">Conflicting details: {card.conflicts.join(', ')}</small>}</div>
-      <button type="button" disabled={busy || (source === 'ALT' && (!viewGrade.grading_company || !viewGrade.grade))} onClick={() => choose(card)}>Review</button>
-    </div>)}</details>}
+  }, [snapshot, refreshing, busy, activeSource]);
+  const searchControls = <>
+    <div className="cr-search"><label htmlFor={prefix + '-query'}>Search cards<input id={prefix + '-query'} value={query} maxLength={240} onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (!busy) void search(); } }} /></label><button type="button" disabled={busy || query.trim().length < 2} onClick={search}>Search</button></div>
+    {activeSource === 'ALT' && !snapshot && sourceUrl && <label className="cr-field" htmlFor={prefix + '-alt-link'}>Card link<input id={prefix + '-alt-link'} type="url" maxLength={300} value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} /></label>}
+    {!snapshot && result && !candidates.length && <p>No matching card found. Try the card number or set name.</p>}
+    {!!candidates.length && <div className="cr-candidates">{candidates.map(card => <div className="cr-candidate" key={card.id || `${card.product_id}:${card.printing || ''}`}>
+      <div><b>{card.name}</b><small>{[card.category, card.set, card.card_number && '#' + card.card_number].filter(Boolean).join(' · ')}</small>{card.conflicts?.length > 0 && <small>Different {card.conflicts.join(', ')}</small>}</div>
+      <button type="button" disabled={busy || (activeSource === 'ALT' && (!viewGrade.grading_company || !viewGrade.grade))} onClick={() => choose(card)}>Select</button>
+    </div>)}</div>}
+  </>;
+  return <section className="cr-panel" aria-label="Card valuation">
+    {!snapshot && searchControls}
+    {busy && !snapshot && <p role="status" className="cr-empty">Finding your card…</p>}
+    {error && !snapshot && <p className="cr-error" role="alert">Pricing is temporarily unavailable. Please try again.</p>}
     {snapshot && <>
-      <div className="cr-reference">{image && <img src={image} alt="Catalog reference, not the seller’s card" loading="lazy" referrerPolicy="no-referrer" />}<div><small>Catalog reference</small><h3>{snapshot.title}</h3><p>{[snapshot.set || snapshot.brand, snapshot.card_number && '#' + snapshot.card_number, snapshot.printing].filter(Boolean).join(' · ')}</p>{source === 'ALT' && <b>{snapshot.grading_company} {snapshot.grade_identity?.grade_label || snapshot.grade}</b>}{snapshot.source_url && <p><a href={safeLink(snapshot.source_url)} target="_blank" rel="noopener noreferrer">View on {source} ↗</a></p>}</div></div>
-      {source === 'ALT' && !!variants.length && <label className="cr-field" htmlFor={prefix + '-grade'}>Grade being researched<select id={prefix + '-grade'} disabled={busy} value={JSON.stringify([snapshot.grading_company, snapshot.grade])} onChange={e => compare(e.target.value)}>{!variants.some(g => g.grading_company === snapshot.grading_company && g.source_grade_code === snapshot.grade) && <option value={JSON.stringify([snapshot.grading_company, snapshot.grade])}>{snapshot.grading_company} {snapshot.grade_identity?.grade_label || snapshot.grade}</option>}{variants.map(g => <option key={JSON.stringify([g.grading_company, g.source_grade_code])} value={JSON.stringify([g.grading_company, g.source_grade_code])}>{g.grading_company} {g.grade_label} · population {g.population_reported ?? 'unavailable'}</option>)}</select></label>}
-      {comparing && <p className="cr-notice">Comparison grade. Submitted grade: {identity.grading_company} {identity.grade}.</p>}
-      {source === 'TCGplayer' && <label className="cr-field" htmlFor={prefix + '-sku'}>Printing · language · condition<select id={prefix + '-sku'} value={snapshot.selected_sku?.sku || ''} disabled={busy} onChange={e => selectSku(e.target.value)}><option value="">Choose the exact combination</option>{snapshot.sku_prices.map(sku => <option key={sku.sku} value={sku.sku}>{sku.variant} · {sku.language} · {sku.condition}</option>)}</select></label>}
-      <p className="cr-notice">{confirmed ? 'Card identity confirmed for this research view.' : 'Suggested reference — confirm the set, number, language and parallel before using this estimate.'}</p>
-      <label className="cr-confirm"><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />I checked the exact card and printing{source === 'ALT' ? ', grader and grade' : source === 'TCGplayer' ? ', language and condition' : ''}.</label>
-      <div className="cr-price"><span>{estimate?.type || 'Market estimate'}</span><strong>{money(estimate?.amount)}</strong>{estimate?.lower_bound != null && estimate?.upper_bound != null && <span>Estimated range {money(estimate.lower_bound)}–{money(estimate.upper_bound)}</span>}</div>
-      <p className="cr-small">Checked {date(estimate?.retrieved_at)}{estimate?.provider_as_of ? ` · Source calculated ${date(estimate.provider_as_of)}` : ''}</p>
-      {source === 'Collectr' && <p className="cr-small">Collectr does not publish the price calculation time or a verified condition/grade breakdown in this public search record. Missing prices stay unavailable.</p>}
-      {(stale || refreshing) && <p className="cr-notice" role="status">{stale ? 'Cached data is past its refresh time. ' : ''}{refreshing ? 'A background refresh is running.' : 'The last successful result is shown; refresh will retry.'}</p>}
-      {source === 'TCGplayer' && !snapshot.selected_sku && <p>Choose a condition-specific SKU for a value. A missing price stays unavailable.</p>}
-      {source === 'ALT' && <>
-        <details><summary>Population by grading company and grade</summary><div className="cr-scroll"><table><thead><tr><th>Grader</th><th>Grade</th><th>Population</th></tr></thead><tbody>{grades.map((g, i) => <tr key={i}><td>{g.grading_company}</td><td>{g.grade_label}</td><td>{g.population_reported ?? 'Unavailable'}</td></tr>)}</tbody></table></div><p className="cr-small">Checked {date(snapshot.population_as_of)}. Population does not establish pricing availability.</p></details>
-        <details open><summary>Recent reported transactions</summary>{!snapshot.recent_sales?.length ? <p>No comparable transactions are available for this exact grade and variant.</p> : <div className="cr-scroll"><table><thead><tr><th>Date / venue</th><th>Type</th><th>Amount</th></tr></thead><tbody>{snapshot.recent_sales.map(sale => <tr key={sale.sale_id}><td>{saleDate(sale.date)}<small>{sale.auction_house}</small>{safeLink(sale.source_url) && <a href={sale.source_url} target="_blank" rel="noopener noreferrer">Source ↗</a>}</td><td>{sale.sale_type?.replaceAll('_', ' ')}<small>{saleLabels[sale.price_status] || 'Review source amount'}{sale.label ? ` · ${sale.label}` : ''}</small></td><td>{money(sale.amount)}</td></tr>)}</tbody></table></div>}<p className="cr-small">Transactions checked {date(snapshot.sales_as_of)}. Listing prices and unverified best offers are not confirmed sale prices.</p></details>
-      </>}
-      <p className="cr-small">Reference research only. Your photos, asking price and offer are unchanged.</p>
+      <div className="cr-hero">{image ? <img src={image} alt={snapshot.title || 'Card'} loading="lazy" referrerPolicy="no-referrer" /> : <span>Image unavailable</span>}</div>
+      <div className="cr-identity">
+        <div className="cr-meta"><span>{snapshot.category || snapshot.brand}</span><span>{snapshot.card_number && '#' + snapshot.card_number}</span></div>
+        <h3>{snapshot.title}</h3>
+        {snapshot.set && <p>{snapshot.set}</p>}
+      </div>
+      <div className="cr-body">
+        {activeSource === 'ALT' && !!variants.length && <label className="cr-variant" htmlFor={prefix + '-grade'}><span className="cr-sr-only">Grader and grade</span><select id={prefix + '-grade'} disabled={busy} value={JSON.stringify([snapshot.grading_company, snapshot.grade])} onChange={e => compare(e.target.value)}>{!variants.some(g => g.grading_company === snapshot.grading_company && g.source_grade_code === snapshot.grade) && <option value={JSON.stringify([snapshot.grading_company, snapshot.grade])}>{snapshot.grading_company} {snapshot.grade_identity?.grade_label || snapshot.grade}</option>}{variants.map(g => <option key={JSON.stringify([g.grading_company, g.source_grade_code])} value={JSON.stringify([g.grading_company, g.source_grade_code])}>{g.grading_company} {g.grade_label}</option>)}</select></label>}
+        {activeSource === 'ALT' && !variants.length && <div className="cr-variant-label">{snapshot.grading_company} {snapshot.grade_identity?.grade_label || snapshot.grade}</div>}
+        {activeSource === 'TCGplayer' && <label className="cr-variant" htmlFor={prefix + '-sku'}><span className="cr-sr-only">Printing, language and condition</span><select id={prefix + '-sku'} value={snapshot.selected_sku?.sku || ''} disabled={busy} onChange={e => selectSku(e.target.value)}><option value="">{snapshot.printing || 'Choose variant'}</option>{snapshot.sku_prices.map(sku => <option key={sku.sku} value={sku.sku}>{sku.variant} · {sku.language} · {sku.condition}</option>)}</select></label>}
+        {activeSource === 'Collectr' && snapshot.printing && <div className="cr-variant-label">{snapshot.printing}</div>}
+        {comparing && <small className="cr-comparison">Submitted: {identity.grading_company} {identity.grade}</small>}
+        {activeSource === 'ALT' && !!variants.length && <div className="cr-population"><span className="cr-value-label">POPULATION · {snapshot.grading_company}</span><div className="cr-pop-grid">{variants.filter(g=>g.grading_company===snapshot.grading_company).map(g=><button type="button" key={g.source_grade_code} disabled={busy} aria-pressed={g.source_grade_code===snapshot.grade} onClick={()=>compare(JSON.stringify([g.grading_company,g.source_grade_code]))}><small>{g.grade_label}</small><strong>{g.population_reported==null?'—':Number(g.population_reported).toLocaleString()}</strong></button>)}</div></div>}
+        {activeSource === 'ALT' ? <div className="cr-valuation" aria-live="polite"><span className="cr-value-label">ESTIMATED VALUE</span><strong className="cr-value-amount">{money(estimate?.amount)}</strong>{estimate?.lower_bound != null && estimate?.upper_bound != null && <span className="cr-range">{money(estimate.lower_bound)}–{money(estimate.upper_bound)}</span>}<small className="cr-updated">{stale?'Updating · ':''}{estimate?.retrieved_at?`Updated ${new Date(estimate.retrieved_at).toLocaleDateString()}`:'Value unavailable'}</small></div> : <CombinedValue snapshot={snapshot} endpoint={endpoint} accountId={accountId} context={identityKey+endpoint+accountId}/>}
+        {activeSource === 'ALT' && <details className="cr-transactions"><summary>Recent sales<span>{snapshot.recent_sales?.length || 0}</span></summary>{!snapshot.recent_sales?.length ? <p>No recent sales for this grade.</p> : snapshot.recent_sales.map(sale=><div className="cr-sale" key={sale.sale_id}><div><b>{sale.sale_type?.replaceAll('_',' ')}</b><small>{saleDate(sale.date)} · {sale.auction_house}</small></div><div><strong>{money(sale.amount)}</strong>{sale.price_status!=='source_reported_transaction_amount'&&<small>{saleLabels[sale.price_status]||'Unverified amount'}</small>}</div></div>)}</details>}
+        <details className="cr-change"><summary>Change card</summary>{searchControls}</details>
+      </div>
     </>}
   </section>;
 }
