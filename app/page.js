@@ -4,9 +4,35 @@ export const metadata = { alternates: { canonical: "/" } };
 const businessData = {
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "WebSite", "@id": "https://www.sellmyslabs.net/#website", name: "SellMySlabs", url: "https://www.sellmyslabs.net", publisher: { "@id": "https://www.sellmyslabs.net/#shop" } },
-    { "@type": "Store", "@id": "https://www.sellmyslabs.net/#shop", name: "Lifestyle Cards & Collectibles", alternateName: "SellMySlabs", url: "https://www.sellmyslabs.net", telephone: "+1-208-613-5529", email: "lifestylecardandcollectibles@gmail.com", image: "https://www.sellmyslabs.net/opengraph-image", description: "Trading card shop in Twin Falls, Idaho. Buy and sell graded cards, raw cards and sealed products through SellMySlabs.", address: { "@type": "PostalAddress", streetAddress: "1339 Filer Ave E, Unit B", addressLocality: "Twin Falls", addressRegion: "ID", postalCode: "83301", addressCountry: "US" }, sameAs: ["https://share.google/e0YnqDkZi036YkURF"] }
-  ]
+    {
+      "@type": "WebSite",
+      "@id": "https://www.sellmyslabs.net/#website",
+      name: "SellMySlabs",
+      url: "https://www.sellmyslabs.net",
+      publisher: { "@id": "https://www.sellmyslabs.net/#shop" },
+    },
+    {
+      "@type": "Store",
+      "@id": "https://www.sellmyslabs.net/#shop",
+      name: "Lifestyle Cards & Collectibles",
+      alternateName: "SellMySlabs",
+      url: "https://www.sellmyslabs.net",
+      telephone: "+1-208-613-5529",
+      email: "lifestylecardandcollectibles@gmail.com",
+      image: "https://www.sellmyslabs.net/opengraph-image",
+      description:
+        "Trading card shop in Twin Falls, Idaho. Buy and sell graded cards, raw cards and sealed products through SellMySlabs.",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "1339 Filer Ave E, Unit B",
+        addressLocality: "Twin Falls",
+        addressRegion: "ID",
+        postalCode: "83301",
+        addressCountry: "US",
+      },
+      sameAs: ["https://share.google/e0YnqDkZi036YkURF"],
+    },
+  ],
 };
 import { Header, Footer } from "./components/Shell";
 import Icon from "./components/Icon";
@@ -14,14 +40,17 @@ import { BUSINESS, GRADERS, FAQS } from "../lib/site";
 export default function Home() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(businessData).replace(/</g, "\\u003c") }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(businessData).replace(/</g, "\\u003c"),
+        }}
+      />
       <Header />
       <main id="main">
         <section className="hero wrap">
           <div className="hero-copy">
-            <span className="eyebrow">
-              FOR THE NEXT CHAPTER OF YOUR COLLECTION
-            </span>
+            <span className="eyebrow">LIFESTYLE CARDS & COLLECTIBLES</span>
             <h1>
               Great cards.
               <br />
@@ -33,29 +62,23 @@ export default function Home() {
             </p>
             <div className="actions">
               <a className="button" href="/sell">
-                Get my offer
+                Request an offer
               </a>
               <a className="text-link" href="#how-it-works">
                 See how it works
               </a>
             </div>
-            <p className="micro">
-              Graded cards. Raw cards. Sealed products. No obligation to sell.
-            </p>
+            <p className="micro">No obligation to sell.</p>
             <div className="accepted">
               <span>GRADED CARDS WE ACCEPT</span>
               <div>
                 {GRADERS.map((g) => (
-                  <strong key={g}>
-                    {g}
-                    {g === "TAG" && <small>NEW</small>}
-                  </strong>
+                  <strong key={g}>{g}</strong>
                 ))}
               </div>
             </div>
           </div>
           <figure className="hero-art">
-            <div className="art-orbit" />
             <Image
               src="/images/tag-charizard.jpg"
               alt="Real TAG graded Charizard ex card in its clear protective slab"
@@ -86,12 +109,7 @@ export default function Home() {
         </div>
         <section className="section wrap" id="how-it-works">
           <div className="section-heading">
-            <span className="eyebrow">LESS EFFORT. MORE CLARITY.</span>
-            <h2>
-              Your next move,
-              <br />
-              in three simple steps.
-            </h2>
+            <h2>Sell in three steps.</h2>
           </div>
           <div className="steps">
             {[
@@ -126,19 +144,15 @@ export default function Home() {
           </div>
           <div className="center">
             <a className="button" href="/sell">
-              Start my request
+              Request an offer
             </a>
           </div>
         </section>
         <section className="shop-section" id="our-shop">
           <div className="wrap shop-grid">
             <div>
-              <span className="eyebrow">COLLECTORS, JUST LIKE YOU.</span>
-              <h2>
-                A real shop.
-                <br />
-                People you can reach.
-              </h2>
+              <span className="eyebrow">TWIN FALLS, IDAHO</span>
+              <h2>Visit our shop.</h2>
               <p className="lead">
                 SellMySlabs is part of {BUSINESS.name}. Behind every offer is
                 our team in Twin Falls, Idaho.
@@ -161,7 +175,7 @@ export default function Home() {
               <p>
                 Have a question about your collection?
                 <br />
-                We’re here to help you take the next step.
+                Call or email our team.
               </p>
               <a className="text-link" href={`mailto:${BUSINESS.email}`}>
                 Email our team
@@ -172,12 +186,7 @@ export default function Home() {
         <GoogleReviews />
         <section className="section wrap faq-grid" id="faq">
           <div>
-            <span className="eyebrow">A LITTLE MORE CLARITY</span>
-            <h2>
-              Good questions.
-              <br />
-              Straight answers.
-            </h2>
+            <h2>Questions before you sell?</h2>
           </div>
           <div>
             {FAQS.map(([q, a]) => (
@@ -192,9 +201,8 @@ export default function Home() {
           </div>
         </section>
         <section className="final-cta wrap">
-          <span className="eyebrow">READY WHEN YOU ARE</span>
           <h2>Let’s see what you’ve got.</h2>
-          <p>A single favorite or a whole collection. Start here.</p>
+          <p>Send your item details and photos. We’ll take a look.</p>
           <a href="/sell" className="button">
             Request an offer
           </a>

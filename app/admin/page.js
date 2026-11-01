@@ -9,13 +9,13 @@ export const dynamic = "force-dynamic";
 export default async function Page() {
   return (
     <>
-      <Header />
+      <Header context="owner" />
       <main className="wrap admin-page" id="main">
         <span className="eyebrow">SELLMYSLABS WORKSPACE</span>
-        <h1>Your submission inbox.</h1>
+        <h1>Submission inbox</h1>
         <Workspace authenticated={await signedIn()} />
       </main>
-      <Footer />
+      <Footer compact />
     </>
   );
 }

@@ -3,10 +3,17 @@ import { owner } from "../../../../lib/security";
 import { siteUrl } from "../../../../lib/origin";
 import { offerMessage } from "../../../../lib/offer-message";
 import { SAVE_OFFER_SQL } from "../../../../lib/offer-records";
-import { deliverOffer, offerEmailSummary } from "../../../../lib/offer-delivery";
+import {
+  deliverOffer,
+  offerEmailSummary,
+} from "../../../../lib/offer-delivery";
 import { db } from "../../../../lib/db";
 import { signedIn, sameOrigin } from "../../../../lib/security";
 import { updateSchema } from "../../../../lib/validation";
+import {
+  prepareOfferPhotos,
+  offerPhotoSummary,
+} from "../../../../lib/offer-photos";
 export const maxDuration = 60;
 export async function GET(request) {
   if (!(await signedIn()))
@@ -27,6 +34,7 @@ export async function GET(request) {
         {
           submission: {
             ...row,
+            offer_photos: offerPhotoSummary(row.offer_photos),
             offer_email: await offerEmailSummary(id),
             photos: row.photos.map((p, i) => ({ index: i, type: p.type })),
           },
@@ -51,30 +59,100 @@ export async function PATCH(request) {
   if (!sameOrigin(request) || !(await signedIn()))
     return Response.json({ error: "Please sign in again." }, { status: 401 });
   try {
-    const parsed = updateSchema.safeParse(await request.json());
+    if (Number(request.headers.get("content-length")) > 1200000)
+      return Response.json(
+        { error: "Please use up to 3 smaller sales photos." },
+        { status: 413 },
+      );
+    let raw,
+      files = [];
+    try {
+      if (
+        request.headers.get("content-type")?.includes("multipart/form-data")
+      ) {
+        const form = await request.formData();
+        raw = JSON.parse(form.get("data"));
+        files = form.getAll("salesPhotos");
+      } else raw = await request.json();
+    } catch {
+      return Response.json(
+        { error: "The offer could not be read. Please try again." },
+        { status: 400 },
+      );
+    }
+    const parsed = updateSchema.safeParse(raw);
     if (!parsed.success)
       return Response.json(
-        { error: parsed.error.issues.find(issue => issue.path[0] === "offer")?.message || "Check the status and private notes, then try again." },
+        {
+          error:
+            parsed.error.issues.find((issue) => issue.path[0] === "offer")
+              ?.message ||
+            "Check the message, photos and private notes, then try again.",
+        },
         { status: 400 },
       );
     const d = parsed.data;
     const sql = db();
     const [submission] = await sql`SELECT * FROM submissions WHERE id=${d.id}`;
-    if (!submission) return Response.json({ error: "Request not found" }, { status: 404 });
+    if (!submission)
+      return Response.json({ error: "Request not found" }, { status: 404 });
+    let photos;
+    try {
+      photos = await prepareOfferPhotos(
+        submission.offer_photos,
+        d.keepPhotoIds,
+        files,
+      );
+    } catch (error) {
+      return Response.json({ error: error.message }, { status: 400 });
+    }
+    const sellerMessage = d.sellerMessage ?? submission.offer_message ?? "";
     if (d.offer && (!process.env.MAIL_FROM || !process.env.RESEND_API_KEY))
-      return Response.json({ error: "Email is not connected. The offer was not changed." }, { status: 503 });
-    const payload = d.offer ? offerMessage(submission, d.offer, {
-      from: process.env.MAIL_FROM, replyTo: owner(), site: siteUrl(),
-    }) : null;
-    const [saved] = await sql.query(SAVE_OFFER_SQL, [d.id, d.status, d.notes, d.offer || null, d.offerVersion, randomUUID(), JSON.stringify(payload)]);
-    if (!saved) return Response.json({ error: "This request changed or an email is sending. Reopen it before saving again." }, { status: 409 });
+      return Response.json(
+        { error: "Email is not connected. The offer was not changed." },
+        { status: 503 },
+      );
+    const payload = d.offer
+      ? offerMessage(
+          { ...submission, offer_message: sellerMessage, offer_photos: photos },
+          d.offer,
+          {
+            from: process.env.MAIL_FROM,
+            replyTo: owner(),
+            site: siteUrl(),
+          },
+        )
+      : null;
+    const [saved] = await sql.query(SAVE_OFFER_SQL, [
+      d.id,
+      d.status,
+      d.notes,
+      d.offer || null,
+      d.offerVersion,
+      randomUUID(),
+      JSON.stringify(payload),
+      sellerMessage,
+      JSON.stringify(photos),
+    ]);
+    if (!saved)
+      return Response.json(
+        {
+          error:
+            "This request changed or an email is sending. Reopen it before saving again.",
+        },
+        { status: 409 },
+      );
     try {
       if (saved.queued_email) await deliverOffer(saved.queued_email);
     } catch {
       // The saved offer and pending email remain recoverable from the inbox.
       console.error("Offer email needs retry");
     }
-    return Response.json({ ok: true, saved, offer_email: await offerEmailSummary(d.id) });
+    return Response.json({
+      ok: true,
+      saved: { ...saved, offer_photos: offerPhotoSummary(saved.offer_photos) },
+      offer_email: await offerEmailSummary(d.id),
+    });
   } catch {
     return Response.json(
       { error: "Changes could not be saved." },

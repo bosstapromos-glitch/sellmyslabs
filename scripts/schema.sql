@@ -20,3 +20,5 @@ CREATE TABLE IF NOT EXISTS offer_emails (
 CREATE INDEX IF NOT EXISTS offer_emails_submission ON offer_emails(submission_id,created_at DESC);
 
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS asking_total numeric(14,2) CHECK(asking_total > 0);
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS offer_message text NOT NULL DEFAULT '';
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS offer_photos jsonb NOT NULL DEFAULT '[]';

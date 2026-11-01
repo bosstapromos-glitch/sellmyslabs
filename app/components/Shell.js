@@ -1,27 +1,55 @@
 import Brand from "./Brand";
 import { BUSINESS } from "../../lib/site";
 
-export function Header() {
+export function Header({ context }) {
   return (
     <header className="site-header">
       <div className="header-inner">
         <Brand />
         <nav aria-label="Main navigation">
-          <a className="nav-text" href="/#how-it-works">
-            How it works
-          </a>
-          <a className="nav-text" href="/#our-shop">
-            Our shop
-          </a>
-          <a className="button small" href="/sell">
-            Request an offer
-          </a>
+          {context ? (
+            <a
+              className="text-link header-context"
+              href={context === "owner" ? "/" : BUSINESS.phoneHref}
+              target={context === "owner" ? "_blank" : undefined}
+              rel={context === "owner" ? "noopener noreferrer" : undefined}
+            >
+              {context === "owner" ? "View website ↗" : "Need help?"}
+            </a>
+          ) : (
+            <>
+              <a className="nav-text" href="/#how-it-works">
+                How it works
+              </a>
+              <a className="nav-text" href="/#our-shop">
+                Our shop
+              </a>
+              <a className="button small" href="/sell">
+                Request an offer
+              </a>
+            </>
+          )}
         </nav>
       </div>
     </header>
   );
 }
-export function Footer() {
+export function Footer({ compact = false }) {
+  if (compact)
+    return (
+      <footer className="task-footer wrap">
+        <span>SellMySlabs · {BUSINESS.name}</span>
+        <div>
+          <a href={BUSINESS.phoneHref}>{BUSINESS.phone}</a>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer">
+            Privacy
+          </a>
+          <a href="/admin" target="_blank" rel="noopener noreferrer">
+            Staff workspace
+          </a>
+        </div>
+      </footer>
+    );
   return (
     <footer className="site-footer">
       <div className="footer-top">

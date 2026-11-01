@@ -1,19 +1,28 @@
 import { Header, Footer } from "../components/Shell";
 import { BUSINESS } from "../../lib/site";
 export const metadata = {
-  "title": "Privacy Notice",
-  "description": "How SellMySlabs handles your contact details, card photos, asking prices and submissions. Learn about your privacy choices and how to contact our shop.",
-  "alternates": {
-    "canonical": "/privacy"
+  title: "Privacy Notice",
+  description:
+    "How SellMySlabs handles your contact details, card photos, asking prices and submissions. Learn about your privacy choices and how to contact our shop.",
+  alternates: {
+    canonical: "/privacy",
   },
-  "openGraph": {
-    "title": "Privacy Notice | SellMySlabs",
-    "description": "How SellMySlabs handles your contact details, card photos, asking prices and submissions. Learn about your privacy choices and how to contact our shop.",
-    "url": "/privacy",
-    "type": "website",
-    "siteName": "SellMySlabs",
-    "images": [{ "url": "/opengraph-image?v=2", "width": 1200, "height": 630, "alt": "SellMySlabs — Graded cards, raw cards and sealed products" }]
-  }
+  openGraph: {
+    title: "Privacy Notice | SellMySlabs",
+    description:
+      "How SellMySlabs handles your contact details, card photos, asking prices and submissions. Learn about your privacy choices and how to contact our shop.",
+    url: "/privacy",
+    type: "website",
+    siteName: "SellMySlabs",
+    images: [
+      {
+        url: "/opengraph-image?v=2",
+        width: 1200,
+        height: 630,
+        alt: "SellMySlabs — Graded cards, raw cards and sealed products",
+      },
+    ],
+  },
 };
 export default function Page() {
   return (
@@ -28,9 +37,9 @@ export default function Page() {
         </p>
         <h2>What we collect</h2>
         <p>
-          We collect the name, email, optional phone number, card and product details, asking prices, notes
-          and photos you submit. The website also uses limited request
-          information to protect forms against abuse.
+          We collect the name, email, optional phone number, card and product
+          details, asking prices, notes and photos you submit. The website also
+          uses limited request information to protect forms against abuse.
         </p>
         <h2>How we use it</h2>
         <p>
@@ -42,8 +51,10 @@ export default function Page() {
         <p>
           Submissions are stored in a private workspace for the shop. Our
           hosting, database, file storage and email providers process
-          information needed to operate this service. Photos are accessed
-          through the signed-in workspace, not a public gallery.
+          information needed to operate this service. Submitted photos are
+          accessed through the signed-in workspace, not a public gallery. Offer
+          emails may include a price explanation and reference images selected
+          by the shop.
         </p>
         <h2>Information on your device</h2>
         <p>
@@ -66,7 +77,9 @@ export default function Page() {
             {BUSINESS.email}
           </a>
           <br />
-          {BUSINESS.phone}
+          <a className="text-link" href={BUSINESS.phoneHref}>
+            {BUSINESS.phone}
+          </a>
           <br />
           {BUSINESS.address}
         </p>
