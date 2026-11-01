@@ -17,6 +17,7 @@ export default function Workspace({ authenticated }) {
   const [notes, setNotes] = useState("");
   const [offer, setOffer] = useState("");
   const [saved, setSaved] = useState(false);
+  const [checkingDelivery, setCheckingDelivery] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const details = useRef(null);
@@ -141,6 +142,20 @@ export default function Workspace({ authenticated }) {
       setSaved(data.offer_email?.status === 'sent' ? 'Offer emailed to the seller.' : 'Email is not confirmed yet. Check the status below.');
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
+  }
+  async function checkDelivery() {
+    const id = selected.id;
+    const emailId = selected.offer_email.id;
+    setCheckingDelivery(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/offer-email?submissionId=${id}`, { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error);
+      setSelected(current => current?.id === id && current.offer_email?.id === emailId
+        ? { ...current, offer_email: data.offer_email } : current);
+    } catch (e) { setError(e.message); }
+    finally { setCheckingDelivery(false); }
   }
   const normalizedOffer = normalizeOfferPrice(String(offer));
   const changedOffer = selected && normalizedOffer !== null && normalizedOffer !== '' && Number(normalizedOffer) !== Number(selected.offer);
@@ -369,6 +384,11 @@ export default function Workspace({ authenticated }) {
                 {selected.offer_email && (
                   <div role="status" style={{ marginTop: 20 }}>
                     <strong>Offer email · ${Number(selected.offer_email.amount).toFixed(2)}</strong>
+                    {selected.offer_email.delivery && <div className={selected.offer_email.delivery.tone === 'success' ? 'success' : selected.offer_email.delivery.tone === 'error' ? 'error' : 'panel'} style={{ marginTop: 12, padding: 16 }}>
+                      <strong>{selected.offer_email.delivery.label}</strong>
+                      <p className="hint" style={{ marginBottom: 0 }}>{selected.offer_email.delivery.detail}</p>
+                      {selected.offer_email.delivery.checked_at && <p className="hint" style={{ marginBottom: 0 }}>Checked {new Date(selected.offer_email.delivery.checked_at).toLocaleString()}.</p>}
+                    </div>}
                     <p className="hint">
                       {selected.offer_email.status === 'sent'
                         ? `Sent ${new Date(selected.offer_email.sent_at).toLocaleString()}.`
@@ -376,6 +396,7 @@ export default function Workspace({ authenticated }) {
                           ? 'Email is sending. Reopen this request shortly to check.'
                           : 'Email has not been confirmed as sent.'}
                     </p>
+                    <button type="button" className="button quiet small" disabled={busy || checkingDelivery} onClick={checkDelivery}>{checkingDelivery ? 'Checking…' : 'Check delivery'}</button>
                     {selected.offer_email.can_retry ? (
                       <button type="button" className="button quiet small" disabled={busy || offer === '' || changedOffer} onClick={retryEmail}>Retry offer email</button>
                     ) : selected.offer_email.status !== 'sent' && selected.offer_email.status !== 'sending' ? (
