@@ -24,10 +24,18 @@ test('owner offers accept USD formatting and reject ambiguous prices', () => {
 test('seller offer uses total price, quantities and owner reply address without private notes', () => {
   assert.deepEqual(payload.to, ['seller@example.com']);
   assert.equal(payload.reply_to, 'owner@example.com');
+  assert.deepEqual(payload.bcc, ['owner@example.com']);
   assert.match(payload.text, /\$280.00 total for all 2 cards/);
   assert.match(payload.text, /TAG 9 · Qty 2/);
   assert.ok(!JSON.stringify(payload).includes('NEVER EMAIL THIS'));
   for (const offer of ['0', '-1', '1000000000000', '12.123', '1e4']) assert.equal(updateSchema.safeParse({ id, status: 'New', notes: '', offer }).success, false);
+});
+test('owner-addressed offers receive one copy without duplicate BCC', () => {
+  const own = offerMessage({ ...submission, email: 'Owner@Example.com' }, '80', {
+    from: 'requests@example.com', replyTo: 'owner@example.com', site: 'https://example.com',
+  });
+  assert.deepEqual(own.to, ['Owner@Example.com']);
+  assert.equal(own.bcc, undefined);
 });
 test('price changes enqueue once, stale saves fail, notes do not resend, retries use one leased record', async () => {
   const db = new PGlite();
@@ -67,6 +75,7 @@ test('price changes enqueue once, stale saves fail, notes do not resend, retries
       assert.equal((await db.query(OFFER_SUMMARY_SQL, [id])).rows[0].status, 'sent');
       assert.equal(calls[0].headers['Idempotency-Key'], calls[1].headers['Idempotency-Key']);
       assert.equal(calls[0].body, calls[1].body);
+      assert.deepEqual(JSON.parse(calls[1].body).bcc, ['owner@example.com']);
       await deliverOffer(current.queued_email, { sql, fetchEmail: async () => { throw Error('Must not resend'); } });
       assert.equal((await db.query(OFFER_SUMMARY_SQL, [id])).rows[0].status, 'sent');
     } finally {
