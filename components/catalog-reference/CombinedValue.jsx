@@ -34,6 +34,6 @@ export default function CombinedValue({snapshot,endpoint,accountId='',context}) 
   return <div className="cr-valuation" aria-live="polite">
     <span className="cr-value-label">ESTIMATED VALUE</span>
     <strong className="cr-value-amount">{money(amount)}</strong>
-    <small className="cr-updated">{stale?'Updating · ':''}{checked?`Updated ${new Date(checked).toLocaleDateString()}`:'Checking price…'}</small>
+    <small className="cr-updated">{stale?'Updating · ':''}{checked?`Checked ${new Date(checked).toLocaleDateString()}`:'Checking price…'}</small>
   </div>;
 }
