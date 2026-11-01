@@ -84,6 +84,7 @@ export default function ReferencePanel({ endpoint, identity, source = 'ALT', aut
   const grades = snapshot?.available_grade_variants || [];
   const variants = [...new Map(grades.map(g => [JSON.stringify([g.grading_company, g.source_grade_code]), g])).values()].sort((a,b) => a.grading_company.localeCompare(b.grading_company) || Number(b.source_grade_code)-Number(a.source_grade_code));
   const image = activeSource === 'ALT' ? snapshot?.images?.find(x => safeLink(x.url))?.url : snapshot?.image_url;
+  const displayTitle = activeSource === 'ALT' && snapshot?.brand ? [snapshot.year, snapshot.brand, snapshot.variety].filter(Boolean).join(' ') : snapshot?.set || snapshot?.title;
   const submittedGrade = result?.submitted_identity || identity;
   const comparing = snapshot && activeSource === 'ALT' && (snapshot.grading_company !== submittedGrade.grading_company || Number(snapshot.grade) !== Number(submittedGrade.grade));
   useEffect(() => {
@@ -116,9 +117,8 @@ export default function ReferencePanel({ endpoint, identity, source = 'ALT', aut
     {snapshot && <>
       <div className="cr-hero">{image ? <img src={image} alt={snapshot.title || 'Card'} loading="lazy" referrerPolicy="no-referrer" /> : <span>Image unavailable</span>}</div>
       <div className="cr-identity">
-        <div className="cr-meta"><span>{snapshot.subject || snapshot.category?.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, c=>c.toUpperCase()) || snapshot.brand}</span><span>{snapshot.card_number && '#' + snapshot.card_number}</span></div>
-        <h3>{snapshot.title}</h3>
-        {snapshot.set && <p>{snapshot.set}</p>}
+        <div className="cr-meta"><span>{snapshot.subject || snapshot.title}</span><span>{snapshot.card_number && '#' + snapshot.card_number}</span></div>
+        <h3>{displayTitle}</h3>
       </div>
       <div className="cr-body">
         {activeSource === 'ALT' && !!variants.length && <label className="cr-variant" htmlFor={prefix + '-grade'}><span className="cr-sr-only">Grader and grade</span><select id={prefix + '-grade'} disabled={busy} value={JSON.stringify([snapshot.grading_company, snapshot.grade])} onChange={e => compare(e.target.value)}>{!variants.some(g => g.grading_company === snapshot.grading_company && g.source_grade_code === snapshot.grade) && <option value={JSON.stringify([snapshot.grading_company, snapshot.grade])}>{snapshot.grading_company} {snapshot.grade_identity?.grade_label || snapshot.grade}</option>}{variants.map(g => <option key={JSON.stringify([g.grading_company, g.source_grade_code])} value={JSON.stringify([g.grading_company, g.source_grade_code])}>{g.grading_company} {g.grade_label}</option>)}</select></label>}
