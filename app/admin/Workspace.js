@@ -7,6 +7,7 @@ import OfferEmailStatus from "./OfferEmailStatus";
 import OfferContext from "./OfferContext";
 import OfferAcceptance from "./OfferAcceptance";
 import ShipmentProgress from "./ShipmentProgress";
+import SignOutAction from "../components/SignOutAction";
 import PhotoReview from "./PhotoReview";
 import SlabResearch from "./SlabResearch";
 import { itemDetails } from "../../lib/site";
@@ -354,25 +355,17 @@ export default function Workspace({ authenticated }) {
           >
             {loadingList ? "Refreshing…" : "Refresh inbox"}
           </button>
-          <button
+          <SignOutAction
             className="button quiet small"
             disabled={busy}
-            onClick={async () => {
-              if (!mayLeave()) return;
-              setBusy(true);
-              try {
-                await requestJSON("/api/auth/logout", { method: "POST" });
-                allowUnload();
-                setSelected(null);
-                location.assign("/admin");
-              } catch (error) {
-                showError(error);
-                setBusy(false);
-              }
+            before={mayLeave}
+            onWorking={setBusy}
+            onSessionCleared={() => {
+              allowUnload();
+              setSelected(null);
             }}
-          >
-            Sign out
-          </button>
+            onError={showError}
+          />
         </div>
       </div>
       {sessionExpired && (

@@ -10,11 +10,21 @@ export function Header({ context }) {
           {context ? (
             <a
               className="text-link header-context"
-              href={context === "owner" ? "/" : BUSINESS.phoneHref}
+              href={
+                context === "owner"
+                  ? "/"
+                  : context === "account"
+                    ? "/sell"
+                    : BUSINESS.phoneHref
+              }
               target={context === "owner" ? "_blank" : undefined}
               rel={context === "owner" ? "noopener noreferrer" : undefined}
             >
-              {context === "owner" ? "View website ↗" : "Need help?"}
+              {context === "owner"
+                ? "View website ↗"
+                : context === "account"
+                  ? "New request"
+                  : "Need help?"}
             </a>
           ) : (
             <>
@@ -82,7 +92,7 @@ export function Footer({ compact = false }) {
         <div>
           <a href="/privacy">Privacy</a>
           <a href="/purchase-terms">Purchase terms</a>
-          <a href="/admin">Sign in</a>
+          <a href="/sign-in">Sign in</a>
         </div>
       </div>
     </footer>

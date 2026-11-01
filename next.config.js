@@ -25,6 +25,19 @@ const nextConfig = {
           { key: "X-Robots-Tag", value: "noindex, nofollow, nosnippet" },
         ],
       })),
+      ...[
+        "/account/:path*",
+        "/sign-in/:path*",
+        "/sign-up/:path*",
+        "/api/account/:path*",
+      ].map((source) => ({
+        source,
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, nosnippet" },
+        ],
+      })),
     ];
   },
 };

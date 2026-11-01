@@ -18,8 +18,9 @@ export const metadata = {
     description: "Review your offer using the private link in your email.",
   },
 };
-export default async function Page({ params }) {
+export default async function Page({ params, searchParams }) {
   const { token } = await params;
+  const fromAccount = (await searchParams)?.from === "account";
   let offer = null,
     unavailable = false;
   try {
@@ -35,6 +36,11 @@ export default async function Page({ params }) {
     <>
       <Header context="seller" />
       <main id="main" className="wrap purchase-page">
+        {fromAccount && (
+          <a className="plain-button" href="/account">
+            ← Your requests
+          </a>
+        )}
         {offer ? (
           <OfferReview token={token} initialOffer={offer} />
         ) : (

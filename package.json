@@ -9,6 +9,7 @@
     "test": "tsx --test tests/*.test.js"
   },
   "dependencies": {
+    "@clerk/nextjs": "7.9.23",
     "@neondatabase/serverless": "1.2.0",
     "@vercel/blob": "2.8.2",
     "heic-to": "1.6.6",
@@ -21,5 +22,10 @@
   "devDependencies": {
     "@electric-sql/pglite": "0.5.11",
     "tsx": "4.23.15"
+  },
+  "overrides": {
+    "@vercel/cli-config": {
+      "zod": "$zod"
+    }
   }
 }

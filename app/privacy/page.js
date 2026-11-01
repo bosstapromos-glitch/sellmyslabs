@@ -42,6 +42,8 @@ export default function Page() {
           uses limited request information to protect forms against abuse. If
           you accept an offer online, we also retain the listed items, price,
           exact purchase terms, the name you enter and the time of acceptance.
+          If you share tracking, we retain the carrier, tracking number and
+          purchase progress confirmed by you and the shop.
         </p>
         <h2>How we use it</h2>
         <p>
@@ -59,7 +61,12 @@ export default function Page() {
           by the shop. Private offer links let anyone holding the link view that
           specific offer and, while it is available, accept it. Keep your link
           private. Accepted purchase records are emailed to the seller and the
-          shop.
+          shop. Optional customer accounts use Clerk for sign-in and email
+          verification. Requests with a matching verified email can be linked to
+          your account; after that, they remain linked to your account ID. You
+          can view those requests and their photos after signing in. Shop-only
+          notes and private valuation tools are not shared with customer
+          accounts.
         </p>
         <h2>Information on your device</h2>
         <p>

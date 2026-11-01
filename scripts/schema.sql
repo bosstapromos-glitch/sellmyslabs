@@ -41,3 +41,7 @@ CREATE TABLE IF NOT EXISTS purchase_shipments (
  paid_at timestamptz, paid_offer_id uuid REFERENCES offer_emails(id),
  version integer NOT NULL DEFAULT 0
 );
+
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS customer_user_id text;
+CREATE INDEX IF NOT EXISTS submissions_customer ON submissions(customer_user_id,created_at DESC);
+CREATE INDEX IF NOT EXISTS submissions_unclaimed_email ON submissions(lower(btrim(email))) WHERE customer_user_id IS NULL;

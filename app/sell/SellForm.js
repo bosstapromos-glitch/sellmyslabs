@@ -247,7 +247,16 @@ export default function SellForm() {
             Please wait for an accepted offer and confirmed shipping details
             before sending any items.
           </p>
-          <a className="button" href="/">
+          <h2>Keep track of your request.</h2>
+          <p>
+            Create an account or sign in with the same email to see your
+            requests, offers and shipping progress. It’s optional—we’ll still
+            email you.
+          </p>
+          <a className="button" href="/account">
+            Track your request
+          </a>
+          <a className="plain-button" href="/">
             Back to home
           </a>
         </section>
