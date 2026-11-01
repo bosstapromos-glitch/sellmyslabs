@@ -1,18 +1,16 @@
-import { altResearchUrl, isGradedSlab } from "../../lib/alt-research";
-
+"use client";
+import { useState } from "react";
+import ReferencePanel from "../../components/catalog-reference/ReferencePanel";
+import { referenceIdentity, referenceSource } from "../../lib/catalog-identity";
 export default function SlabResearch({ cards }) {
-  const slabs = cards.filter(isGradedSlab);
-  if (!slabs.length) return null;
+  const [active, setActive] = useState(0);
+  if (!cards.length) return null;
+  const index = Math.min(active, cards.length - 1), item = cards[index];
   return <section className="owner-photo-review" aria-labelledby="slab-research-heading">
-    <h3 id="slab-research-heading">Check slab value</h3>
-    <p className="hint">Match the card, grading company and grade in Alt.</p>
-    {slabs.map((item, index) => {
-      const url = altResearchUrl(item);
-      return <div className="review-row" key={index}>
-        <div><strong>{item.name}</strong><br /><span>{item.grader} {item.grade}{item.cert ? ` · Cert ${item.cert}` : ""}</span></div>
-        {url ? <a className="button secondary small" href={url} target="_blank" rel="noopener noreferrer" aria-label={`Look up ${item.name} in Alt`}>Look up in Alt ↗</a> : <span className="hint">Manual review · Alt coverage is not confirmed for this slab.</span>}
-      </div>;
-    })}
-    <p className="hint">Private lookup · Alt may ask you to sign in. Values don’t sync automatically.</p>
+    <h3 id="slab-research-heading">Private pricing research</h3>
+    <p className="hint">ALT for graded slabs. TCGplayer for supported ungraded cards and sealed products.</p>
+    {cards.length > 1 && <label>Research item<select value={index} onChange={event => setActive(Number(event.target.value))}>{cards.map((card, i) => <option key={i} value={i}>{i + 1}. {card.name} · {card.grader} {card.grade}</option>)}</select></label>}
+    <ReferencePanel key={index + ":" + JSON.stringify(item)} endpoint="/api/admin/catalog" identity={referenceIdentity(item)} source={referenceSource(item)} />
+    <p className="hint">Visible only in your owner workspace. Research does not change the customer’s asking price or send an offer.</p>
   </section>;
 }

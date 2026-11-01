@@ -4,6 +4,7 @@ import { db, configured } from "../../../lib/db";
 import { submissionSchema } from "../../../lib/validation";
 import { sameOrigin, limited } from "../../../lib/security";
 import { notifySubmission } from "../../../lib/mail";
+import { prepareSlabResearch } from "../../../lib/catalog-prewarm";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 function imageType(bytes) {
@@ -137,6 +138,10 @@ export async function POST(request) {
       } catch {
         console.error("Submission saved; notification pending retry.");
       }
+    });
+    if (saved) after(async () => {
+      try { await prepareSlabResearch(d.cards); }
+      catch { console.error("Submission saved; private pricing research will retry when opened."); }
     });
     return Response.json(
       { id: d.id, reference: d.id.slice(0, 8).toUpperCase() },

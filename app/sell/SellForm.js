@@ -401,6 +401,7 @@ export default function SellForm() {
                                 <option key={v}>{v}</option>
                               ))}
                             </select>
+                            {!c.category && c.sourceCategory && <small>Previous category: {c.sourceCategory}. Choose a supported category.</small>}
                           </Field>
                           <Field
                             id={key("quantity")}
@@ -914,3 +915,4 @@ export default function SellForm() {
     </div>
   );
 }
+
