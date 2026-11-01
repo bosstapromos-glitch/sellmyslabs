@@ -177,6 +177,9 @@ test("same-price message/photo updates create immutable emails; private saves an
           JSON.stringify(payload),
           message,
           JSON.stringify(photos),
+          null,
+          false,
+          null,
         ])
       ).rows[0];
     };

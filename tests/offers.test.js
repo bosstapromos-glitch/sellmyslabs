@@ -110,6 +110,9 @@ test("price changes enqueue once, stale saves fail, notes do not resend, retries
           JSON.stringify(payload),
           "",
           "[]",
+          null,
+          false,
+          null,
         ])
       ).rows[0];
     const first = await save("280", 0);

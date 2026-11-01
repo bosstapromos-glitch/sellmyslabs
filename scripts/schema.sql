@@ -22,3 +22,13 @@ CREATE INDEX IF NOT EXISTS offer_emails_submission ON offer_emails(submission_id
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS asking_total numeric(14,2) CHECK(asking_total > 0);
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS offer_message text NOT NULL DEFAULT '';
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS offer_photos jsonb NOT NULL DEFAULT '[]';
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS edit_version integer NOT NULL DEFAULT 0;
+ALTER TABLE offer_emails ADD COLUMN IF NOT EXISTS purchase_snapshot jsonb;
+ALTER TABLE offer_emails ADD COLUMN IF NOT EXISTS accepted_at timestamptz;
+ALTER TABLE offer_emails ADD COLUMN IF NOT EXISTS accepted_name text;
+CREATE TABLE IF NOT EXISTS purchase_receipts (
+ offer_id uuid PRIMARY KEY REFERENCES offer_emails(id), payload jsonb NOT NULL,
+ status text NOT NULL DEFAULT 'pending', created_at timestamptz NOT NULL DEFAULT now(),
+ first_attempt_at timestamptz, locked_until timestamptz, lease_id uuid,
+ sent_at timestamptz, provider_id text, error text
+);

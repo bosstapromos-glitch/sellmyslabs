@@ -5,6 +5,7 @@ import { hasOwnerEdits, hasSellerContextEdits } from "../../lib/owner-edits";
 import useUnsavedChanges from "../components/useUnsavedChanges";
 import OfferEmailStatus from "./OfferEmailStatus";
 import OfferContext from "./OfferContext";
+import OfferAcceptance from "./OfferAcceptance";
 import PhotoReview from "./PhotoReview";
 import SlabResearch from "./SlabResearch";
 import { itemDetails } from "../../lib/site";
@@ -152,7 +153,7 @@ export default function Workspace({ authenticated }) {
       setBusy(false);
     }
   }
-  async function save(e) {
+  async function save(e, requestAcceptance = false) {
     e.preventDefault();
     if (busy) return;
     if (normalizeOfferPrice(String(offer)) === null) {
@@ -173,6 +174,8 @@ export default function Workspace({ authenticated }) {
           notes,
           offer: String(offer),
           offerVersion: selected.offer_version,
+          editVersion: selected.edit_version ?? 0,
+          requestAcceptance,
           sellerMessage,
           keepPhotoIds: offerPhotos.map((photo) => photo.id),
         }),
@@ -188,6 +191,7 @@ export default function Workspace({ authenticated }) {
         offer_email: d.offer_email,
       }));
       setOffer(d.saved.offer ?? "");
+      setStatus(d.saved.status);
       setSellerMessage(d.saved.offer_message || "");
       setOfferPhotos(d.saved.offer_photos || []);
       setNewOfferPhotos([]);
@@ -223,6 +227,28 @@ export default function Workspace({ authenticated }) {
       );
     } catch (e) {
       showError(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function retryReceipt() {
+    setBusy(true);
+    setError("");
+    setSaved(false);
+    try {
+      const data = await requestJSON("/api/admin/purchase-receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selected.offer_email.id }),
+      });
+      setSelected((current) => ({ ...current, offer_email: data.offer_email }));
+      setSaved(
+        data.offer_email?.acceptance?.receipt?.status === "sent"
+          ? "Acceptance confirmation emailed."
+          : "The acceptance is saved. Its confirmation email is not yet confirmed.",
+      );
+    } catch (error) {
+      showError(error);
     } finally {
       setBusy(false);
     }
@@ -647,6 +673,19 @@ export default function Workspace({ authenticated }) {
                   }
                   onCheck={checkDelivery}
                   onRetry={retryEmail}
+                />
+                <OfferAcceptance
+                  email={selected.offer_email}
+                  history={selected.acceptances}
+                  busy={busy}
+                  unsaved={unsaved}
+                  activeOffer={
+                    Boolean(normalizedOffer) &&
+                    !["Closed", "Paid"].includes(status)
+                  }
+                  onSend={(event) => save(event, true)}
+                  onRefresh={() => open(selected.id, { reload: true })}
+                  onRetryReceipt={retryReceipt}
                 />
               </form>
             </>

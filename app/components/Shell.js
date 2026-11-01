@@ -44,6 +44,9 @@ export function Footer({ compact = false }) {
           <a href="/privacy" target="_blank" rel="noopener noreferrer">
             Privacy
           </a>
+          <a href="/purchase-terms" target="_blank" rel="noopener noreferrer">
+            Purchase terms
+          </a>
           <a href="/admin" target="_blank" rel="noopener noreferrer">
             Staff workspace
           </a>
@@ -81,6 +84,7 @@ export function Footer({ compact = false }) {
         <span>© {new Date().getFullYear()} SellMySlabs</span>
         <div>
           <a href="/privacy">Privacy</a>
+          <a href="/purchase-terms">Purchase terms</a>
           <a href="/admin">Staff workspace</a>
         </div>
       </div>

@@ -39,7 +39,9 @@ export default function Page() {
         <p>
           We collect the name, email, optional phone number, card and product
           details, asking prices, notes and photos you submit. The website also
-          uses limited request information to protect forms against abuse.
+          uses limited request information to protect forms against abuse. If
+          you accept an offer online, we also retain the listed items, price,
+          exact purchase terms, the name you enter and the time of acceptance.
         </p>
         <h2>How we use it</h2>
         <p>
@@ -54,7 +56,10 @@ export default function Page() {
           information needed to operate this service. Submitted photos are
           accessed through the signed-in workspace, not a public gallery. Offer
           emails may include a price explanation and reference images selected
-          by the shop.
+          by the shop. Private offer links let anyone holding the link view that
+          specific offer and, while it is available, accept it. Keep your link
+          private. Accepted purchase records are emailed to the seller and the
+          shop.
         </p>
         <h2>Information on your device</h2>
         <p>

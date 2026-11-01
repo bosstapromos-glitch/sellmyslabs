@@ -1588,6 +1588,133 @@ textarea::placeholder {
   margin-left: 8px;
   white-space: nowrap;
 }
+
+.purchase-page {
+  max-width: 760px;
+  padding-block: 48px 64px;
+}
+.purchase-page h1 {
+  font-size: clamp(30px, 5vw, 42px);
+  letter-spacing: -0.035em;
+}
+.purchase-page h2 {
+  font-size: 22px;
+  margin: 28px 0 12px;
+}
+.purchase-page h3,
+.purchase-terms h3 {
+  font-size: 16px;
+  margin: 24px 0 8px;
+}
+.purchase-page p {
+  line-height: 1.6;
+}
+.purchase-summary,
+.purchase-terms,
+.purchase-acceptance,
+.purchase-contact {
+  border-top: 1px solid var(--line);
+  margin-top: 32px;
+  padding-top: 24px;
+}
+.purchase-total {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+}
+.purchase-total strong {
+  font-size: 32px;
+  letter-spacing: -0.03em;
+}
+.purchase-items {
+  list-style: none;
+  padding: 0;
+}
+.purchase-items li {
+  display: grid;
+  gap: 4px;
+  padding-block: 16px;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.purchase-items span {
+  color: var(--muted);
+  font-size: 14px;
+}
+.preserve-lines {
+  white-space: pre-wrap;
+}
+.purchase-confirmation,
+.purchase-page .notice {
+  border-left: 3px solid var(--blue-ink);
+  padding: 4px 0 4px 20px;
+  margin-block: 24px;
+}
+.purchase-confirmation h2 {
+  margin-top: 0;
+}
+.purchase-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 24px 0;
+  padding-block: 8px;
+  cursor: pointer;
+  line-height: 1.6;
+}
+.purchase-consent input {
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  flex: 0 0 22px;
+  margin: 2px 0 0;
+  accent-color: var(--blue-ink);
+}
+.purchase-contact a,
+.purchase-history a {
+  overflow-wrap: anywhere;
+}
+.purchase-history {
+  margin-top: 24px;
+}
+.purchase-history li {
+  margin-block: 12px;
+}
+@media (max-width: 600px) {
+  .purchase-page {
+    padding-top: 32px;
+  }
+  .purchase-acceptance .button {
+    width: 100%;
+  }
+}
+@media print {
+  .site-header,
+  .site-footer,
+  .task-footer,
+  .purchase-acceptance,
+  .purchase-contact {
+    display: none;
+  }
+  .purchase-page {
+    max-width: none;
+    padding: 0;
+  }
+  .purchase-page h2,
+  .purchase-page h3 {
+    break-after: avoid;
+  }
+  .purchase-items li {
+    break-inside: avoid;
+  }
+  .purchase-page p,
+  .purchase-items span {
+    color: #000;
+  }
+}
 .offer-context .field {
   margin: 16px 0;
 }

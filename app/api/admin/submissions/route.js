@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { purchaseSnapshot } from "../../../../lib/purchase-terms";
+import { purchasePath } from "../../../../lib/purchase-token";
 import { owner } from "../../../../lib/security";
 import { siteUrl } from "../../../../lib/origin";
 import { offerMessage } from "../../../../lib/offer-message";
@@ -30,12 +32,18 @@ export async function GET(request) {
       const [row] = await sql`SELECT * FROM submissions WHERE id=${id}`;
       if (!row)
         return Response.json({ error: "Request not found" }, { status: 404 });
+      const accepted =
+        await sql`SELECT id,amount,accepted_at,accepted_name FROM offer_emails WHERE submission_id=${id} AND accepted_at IS NOT NULL ORDER BY accepted_at DESC`;
       return Response.json(
         {
           submission: {
             ...row,
             offer_photos: offerPhotoSummary(row.offer_photos),
             offer_email: await offerEmailSummary(id),
+            acceptances: accepted.map((offer) => ({
+              ...offer,
+              url: purchasePath(offer.id),
+            })),
             photos: row.photos.map((p, i) => ({ index: i, type: p.type })),
           },
         },
@@ -92,6 +100,17 @@ export async function PATCH(request) {
         { status: 400 },
       );
     const d = parsed.data;
+    if (
+      d.requestAcceptance &&
+      (!d.offer || ["Closed", "Paid"].includes(d.status))
+    )
+      return Response.json(
+        {
+          error:
+            "Use an active request with a total offer before sending purchase terms.",
+        },
+        { status: 400 },
+      );
     const sql = db();
     const [submission] = await sql`SELECT * FROM submissions WHERE id=${d.id}`;
     if (!submission)
@@ -112,16 +131,20 @@ export async function PATCH(request) {
         { error: "Email is not connected. The offer was not changed." },
         { status: 503 },
       );
+    const offerEmailId = randomUUID();
+    const offered = {
+      ...submission,
+      offer_message: sellerMessage,
+      offer_photos: photos,
+    };
+    const snapshot = d.offer ? purchaseSnapshot(offered, d.offer) : null;
     const payload = d.offer
-      ? offerMessage(
-          { ...submission, offer_message: sellerMessage, offer_photos: photos },
-          d.offer,
-          {
-            from: process.env.MAIL_FROM,
-            replyTo: owner(),
-            site: siteUrl(),
-          },
-        )
+      ? offerMessage(offered, d.offer, {
+          from: process.env.MAIL_FROM,
+          replyTo: owner(),
+          site: siteUrl(),
+          acceptanceUrl: `${siteUrl()}${purchasePath(offerEmailId)}`,
+        })
       : null;
     const [saved] = await sql.query(SAVE_OFFER_SQL, [
       d.id,
@@ -129,10 +152,13 @@ export async function PATCH(request) {
       d.notes,
       d.offer || null,
       d.offerVersion,
-      randomUUID(),
+      offerEmailId,
       JSON.stringify(payload),
       sellerMessage,
       JSON.stringify(photos),
+      snapshot ? JSON.stringify(snapshot) : null,
+      d.requestAcceptance,
+      d.editVersion,
     ]);
     if (!saved)
       return Response.json(
