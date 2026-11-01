@@ -5,6 +5,7 @@ import { submissionSchema } from "../../../lib/validation";
 import { sameOrigin, limited } from "../../../lib/security";
 import { notifySubmission } from "../../../lib/mail";
 import { prepareSlabResearch } from "../../../lib/catalog-prewarm";
+import { catalogStaging } from '../../../lib/catalog-staging';
 export const runtime = "nodejs";
 export const maxDuration = 60;
 function imageType(bytes) {
@@ -72,6 +73,8 @@ export async function POST(request) {
         { status: 400 },
       );
     const d = parsed.data;
+    if (catalogStaging() && !d.email.toLowerCase().endsWith('@example.test'))
+      return Response.json({error: 'Use an @example.test address for this isolated test preview.'}, {status: 400});
     const sql = db();
     const exists = await sql`SELECT id FROM submissions WHERE id=${d.id}`;
     if (exists.length)

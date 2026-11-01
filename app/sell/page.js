@@ -1,5 +1,6 @@
 import { Header, Footer } from "../components/Shell";
 import SellForm from "./SellForm";
+import { catalogStaging } from '../../lib/catalog-staging';
 export const metadata = {
   title: "Sell Cards & Sealed Products",
   description:
@@ -29,6 +30,7 @@ export default function Page() {
     <>
       <Header context="sell" />
       <main id="main" className="wrap form-page">
+        {catalogStaging() && <p className="hint">Test preview · Use an @example.test email. These requests go to a separate test inbox.</p>}
         <SellForm />
       </main>
       <Footer compact />
