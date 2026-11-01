@@ -18,11 +18,21 @@ export default function CombinedValue({snapshot,endpoint,accountId='',context}) 
     const headers={'Content-Type':'application/json'};
     if(accountId)headers['X-Lifestyle-Account']=encodeURIComponent(accountId);
     // Counterpart discovery, eligibility and arithmetic run on the server.
-    fetch(endpoint,{method:'POST',headers,credentials:'same-origin',cache:'no-store',signal:abort.signal,
-      body:JSON.stringify({action:'consensus',payload:{references:[current]}})})
-      .then(async res=>{if(!res.ok)throw Error('unavailable');const data=await res.json();if(active)setResponse({key:requestKey,data});})
-      .catch(()=>{if(active)setResponse({key:requestKey,data:null});});
-    return()=>{active=false;abort.abort();};
+    let timer, polls=0;
+    async function readValue(){
+      try{
+        const res=await fetch(endpoint,{method:'POST',headers,credentials:'same-origin',cache:'no-store',signal:abort.signal,
+          body:JSON.stringify({action:'consensus',payload:{references:[current]}})});
+        if(!res.ok)throw Error('unavailable');
+        const data=await res.json();
+        if(active){
+          setResponse({key:requestKey,data});
+          if(data.refresh_in_progress && polls++<6)timer=setTimeout(readValue,5000);
+        }
+      }catch{if(active)setResponse({key:requestKey,data:null});}
+    }
+    void readValue();
+    return()=>{active=false;clearTimeout(timer);abort.abort();};
   },[referenceKey,requestKey,endpoint,accountId]);
   const result=response?.key===requestKey?response.data:null;
   const estimate=snapshot?.estimated_value;
