@@ -860,12 +860,14 @@ textarea {
   justify-content: space-between;
   align-items: center;
   gap: 28px;
+  margin-bottom: 16px;
 }
 .reviews-heading h2 {
   margin-bottom: 18px;
 }
 .reviews-heading p {
   max-width: 600px;
+  margin-bottom: 0;
 }
 .reviews-heading .button {
   flex-shrink: 0;
