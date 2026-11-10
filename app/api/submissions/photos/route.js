@@ -1,3 +1,4 @@
+import { getIdentity } from "../../../../lib/identity";
 import { put, del } from "@vercel/blob";
 import { db, configured } from "../../../../lib/db";
 import { sameOrigin, limited } from "../../../../lib/security";
@@ -11,4 +12,5 @@ export const POST = createPhotoUploadHandler({
   configured,
   sameOrigin,
   limited,
+  getIdentity,
 });

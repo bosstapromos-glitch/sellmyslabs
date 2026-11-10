@@ -1,3 +1,4 @@
+import { getIdentity } from "../../../lib/identity";
 import { after } from "next/server";
 import { put, del } from "@vercel/blob";
 import { db, configured } from "../../../lib/db";
@@ -15,4 +16,5 @@ export const POST = createSubmissionHandler({
   sameOrigin,
   limited,
   notifySubmission,
+  getIdentity,
 });

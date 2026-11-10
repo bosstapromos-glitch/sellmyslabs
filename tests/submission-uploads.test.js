@@ -189,6 +189,7 @@ test("failed storage records remove only their own blob and propagate failure", 
   let removed;
   const sql = {
     query: async (q) => {
+      if (q.startsWith("SELECT customer_user_id")) return [];
       if (q.startsWith("SELECT id")) return [];
       if (q.startsWith("SELECT count")) return [{ count: 0 }];
       throw Error("DB unavailable");
@@ -278,7 +279,7 @@ test("upload endpoint rejects cross-origin, oversized, unavailable and rate-limi
   assert.equal(
     (
       await createPhotoUploadHandler(deps)(
-        req({ origin: "https://example.com", "content-length": "400001" }),
+        req({ origin: "https://example.com", "content-length": "500001" }),
       )
     ).status,
     413,

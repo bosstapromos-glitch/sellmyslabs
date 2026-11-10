@@ -22,6 +22,8 @@ import { requestJSON } from "../../lib/request-json";
 import useUnsavedChanges from "../components/useUnsavedChanges";
 import { Field, PhotoList } from "./SellFields";
 import styles from "./SellForm.module.css";
+import useAccountDraft from "./useAccountDraft";
+import AccountDraftStatus from "./AccountDraftStatus";
 import InspectionNotice from "../components/InspectionNotice";
 import {
   MAX_SUBMISSION_PHOTOS,
@@ -65,19 +67,60 @@ export default function SellForm() {
   const focusInvalid = useRef(false);
   const files = useRef(null);
   const camera = useRef(null);
-  const working = busy || preparing || importing || savingPhotos;
+  const account = useAccountDraft({
+    draft,
+    photos,
+    ready,
+    done: !!reference,
+    paused: busy || savingPhotos,
+    onRestore: (data, loaded, expired) => {
+      setDraft(data);
+      setPhotos(loaded);
+      setRestored(true);
+      setStep(0);
+      setErrors({});
+      setError("");
+      setDraftNotice(
+        expired
+          ? `${expired} saved photo${expired === 1 ? " has" : "s have"} expired. Please add ${expired === 1 ? "it" : "them"} again.`
+          : "",
+      );
+    },
+  });
+  const working =
+    (account.saving && !account.active) ||
+    busy ||
+    preparing ||
+    importing ||
+    savingPhotos ||
+    account.loading ||
+    account.blocked;
   const photosSaved =
-    photoStorageAvailable && photos.every((photo) => photo.persisted);
+    account.active ||
+    (photoStorageAvailable && photos.every((photo) => photo.persisted));
   useUnsavedChanges(
     !reference &&
-      ((!photosSaved && photos.length > 0) ||
-        working ||
-        (!draftAvailable && hasDraftContent(draft))),
+      (account.dirty ||
+        account.saving ||
+        (!photosSaved && photos.length > 0) ||
+        busy ||
+        preparing ||
+        importing ||
+        savingPhotos ||
+        (!account.active && !draftAvailable && hasDraftContent(draft))),
   );
 
   useEffect(() => {
     let active = true;
     async function restore() {
+      const requested = new URLSearchParams(window.location.search).get(
+        "draft",
+      );
+      if (requested) {
+        setDraft({ ...emptyDraft(), id: requested });
+        setReady(true);
+        return;
+      }
       let saved;
       try {
         saved = restoreDraft(localStorage.getItem(KEY), () =>
@@ -110,14 +153,28 @@ export default function SellForm() {
     };
   }, []);
   useEffect(() => {
-    if (!ready || reference) return;
+    if (
+      !ready ||
+      reference ||
+      account.active ||
+      account.loading ||
+      account.blocked
+    )
+      return;
     try {
       localStorage.setItem(KEY, JSON.stringify({ ...draft, consent: false }));
       setDraftAvailable(true);
     } catch {
       setDraftAvailable(false);
     }
-  }, [draft, ready, reference]);
+  }, [
+    draft,
+    ready,
+    reference,
+    account.active,
+    account.loading,
+    account.blocked,
+  ]);
   useEffect(() => {
     if (focusInvalid.current) {
       focusInvalid.current = false;
@@ -206,7 +263,7 @@ export default function SellForm() {
         async (photo) => {
           let persisted = false;
           try {
-            await saveDraftPhoto(draft.id, photo);
+            if (!account.active) await saveDraftPhoto(draft.id, photo);
             persisted = true;
             setPhotoStorageAvailable(true);
           } catch {
@@ -263,14 +320,17 @@ export default function SellForm() {
     setBusy(true);
     setError("");
     try {
+      const revision = account.active ? await account.save() : null;
       const data = new FormData();
       data.set("data", JSON.stringify(parsed.data));
+      if (revision) data.set("draftVersion", String(revision));
       data.set("uploads", JSON.stringify(photos.map((photo) => photo.token)));
       const result = await requestJSON(
         "/api/submissions",
         { method: "POST", body: data },
         "We could not send your request. Your details are still here; please try again.",
       );
+      account.finish();
       setReference(result.reference);
       setPhotos([]);
       await clearDraftPhotos(draft.id).catch(() => {});
@@ -334,6 +394,7 @@ export default function SellForm() {
         <p>{descriptions[step]}</p>
       </header>
       <InspectionNotice />
+      {ready && <AccountDraftStatus account={account} disabled={working} />}
       <ol className={styles.progress} aria-label="Request progress">
         {stages.map((label, index) => (
           <li
@@ -767,7 +828,7 @@ export default function SellForm() {
                       preparingLock.current = true;
                       setSavingPhotos(true);
                       try {
-                        if (photos[index].persisted)
+                        if (!account.active && photos[index].persisted)
                           await removeDraftPhoto(draft.id, photos[index].token);
                         setPhotos((current) =>
                           current.filter((_, i) => i !== index),
@@ -1018,9 +1079,11 @@ export default function SellForm() {
       </form>
       <div className={styles.draftStatus}>
         <p className={styles.hint}>
-          {draftAvailable && photosSaved
-            ? "Your details and uploaded photos are saved on this device. Return in the same browser to continue. Photos are kept for 30 days from upload."
-            : "This browser cannot save your full draft. Keep this page open until you send it."}
+          {account.active
+            ? "Your account draft keeps your items, contact details and uploaded photos together."
+            : draftAvailable && photosSaved
+              ? "Your details and uploaded photos are saved on this device. Return in the same browser to continue. Photos are kept for 30 days from upload."
+              : "This browser cannot save your full draft. Keep this page open until you send it."}
         </p>
         <button
           type="button"
@@ -1036,11 +1099,15 @@ export default function SellForm() {
               return;
             setSavingPhotos(true);
             try {
-              await clearDraftPhotos(draft.id);
-            } catch {
-              if (photos.some((photo) => photo.persisted)) {
+              if (account.active) {
+                await account.clear();
+                await clearDraftPhotos(draft.id).catch(() => {});
+              } else await clearDraftPhotos(draft.id);
+            } catch (failure) {
+              if (account.active || photos.some((photo) => photo.persisted)) {
                 setError(
-                  "Your saved photos couldn’t be cleared. Please try again.",
+                  failure.message ||
+                    "Your saved photos couldn’t be cleared. Please try again.",
                 );
                 setSavingPhotos(false);
                 return;

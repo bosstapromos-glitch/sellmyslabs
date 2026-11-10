@@ -9,9 +9,10 @@ export async function GET(request) {
     !process.env.CRON_SECRET ||
     request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`
   )
-    await cleanupUploads(sql, del).catch(() =>
-      console.error("Photo cleanup will retry."),
-    );
+    await sql`DELETE FROM account_drafts WHERE updated_at<now()-interval '31 days'`;
+  await cleanupUploads(sql, del).catch(() =>
+    console.error("Photo cleanup will retry."),
+  );
   return Response.json({ error: "Unauthorized" }, { status: 401 });
   const sql = db();
   const receipts =
@@ -32,6 +33,7 @@ export async function GET(request) {
   }
   await sql`DELETE FROM login_tokens WHERE expires_at<now()`;
   await sql`DELETE FROM rate_limits WHERE bucket<${Math.floor(Date.now() / 3600000) - 24}`;
+  await sql`DELETE FROM account_drafts WHERE updated_at<now()-interval '31 days'`;
   await cleanupUploads(sql, del).catch(() =>
     console.error("Photo cleanup will retry."),
   );

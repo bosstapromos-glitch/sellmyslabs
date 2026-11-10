@@ -1,3 +1,6 @@
+import { listAccountDrafts } from "../../lib/account-drafts";
+import { db } from "../../lib/db";
+import DraftList from "./DraftList";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireCustomer, customerRequests } from "../../lib/customer-account";
@@ -8,6 +11,9 @@ import styles from "./Account.module.css";
 export const dynamic = "force-dynamic";
 export default async function Page({ searchParams }) {
   const identity = await requireCustomer();
+  const drafts = identity.emails.length
+    ? await listAccountDrafts(identity, db())
+    : [];
   const params = await searchParams;
   const rawPage = Number(params.page || 1);
   const page =
@@ -28,6 +34,7 @@ export default async function Page({ searchParams }) {
           <SignOutAction />
         </div>
       </div>
+      <DraftList drafts={drafts} />
       {!identity.emails.length ? (
         <section className={styles.empty}>
           <h2>Verify your email first.</h2>

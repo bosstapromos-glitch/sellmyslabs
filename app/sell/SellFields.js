@@ -36,6 +36,10 @@ export function Field({
 function Photo({ file, index, onRemove, disabled }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
+    if (file.previewUrl) {
+      setUrl(file.previewUrl);
+      return;
+    }
     const next = URL.createObjectURL(file.preview || photoPreview(file));
     setUrl(next);
     return () => URL.revokeObjectURL(next);

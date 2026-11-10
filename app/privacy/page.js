@@ -74,15 +74,26 @@ export default function Page() {
           notes and private valuation tools are not shared with customer
           accounts.
         </p>
+        <h2>Drafts saved to your account</h2>
+        <p>
+          When you choose “Save draft to my account”, we store your draft
+          details and photo references privately with your account. Later
+          changes save automatically. Sign in to the same account on another
+          device to continue. Drafts remain available for 30 days after their
+          last save; photos expire 30 days after upload. Expired drafts are
+          scheduled for deletion after 31 days. Clearing an account draft
+          removes it from your account; uploaded photos follow the deletion
+          schedule above.
+        </p>
         <h2>Information on your device</h2>
         <p>
-          The request form saves a draft in this browser so you can continue
-          later. Small photo previews and private upload references are saved on
-          this device so uploaded photos can be restored for up to 30 days in
-          the same browser. Clearing browser data or using another device will
-          not restore that draft. Use “Clear draft” to remove the saved details
-          and photo previews, particularly on a shared device. Sign-in uses a
-          secure session cookie.
+          Before you save to an account, the request form saves a draft in this
+          browser so you can continue later. Small photo previews and private
+          upload references are saved on this device so uploaded photos can be
+          restored for up to 30 days in the same browser. A browser-only draft
+          will not follow you to another device. Use “Clear draft” to remove the
+          saved details and photo previews, particularly on a shared device.
+          Sign-in uses a secure session cookie.
         </p>
         <h2>Your choices</h2>
         <p>

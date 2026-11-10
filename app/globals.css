@@ -1862,3 +1862,7 @@ textarea::placeholder {
     gap: 4px;
   }
 }
+
+.account-draft-status { border-bottom:1px solid var(--line); padding-block:16px; margin-block:12px 24px; }
+.account-draft-status p { margin:0 0 8px; }
+.account-draft-status > a { margin-left:16px; }

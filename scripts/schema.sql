@@ -52,3 +52,10 @@ CREATE TABLE IF NOT EXISTS submission_uploads (
 );
 CREATE INDEX IF NOT EXISTS submission_uploads_created ON submission_uploads(created_at);
 CREATE INDEX IF NOT EXISTS submission_uploads_request ON submission_uploads(submission_id);
+
+CREATE TABLE IF NOT EXISTS account_drafts (
+ id uuid PRIMARY KEY, customer_user_id text NOT NULL, data jsonb NOT NULL,
+ photos jsonb NOT NULL DEFAULT '[]', version integer NOT NULL DEFAULT 1,
+ updated_at timestamptz NOT NULL DEFAULT now(), closed_at timestamptz
+);
+CREATE INDEX IF NOT EXISTS account_drafts_owner ON account_drafts(customer_user_id,updated_at DESC);
