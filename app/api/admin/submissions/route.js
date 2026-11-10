@@ -1,3 +1,8 @@
+import {
+  canSetPurchaseResponseStatus,
+  PURCHASE_RESPONSE_STATUSES,
+} from "../../../../lib/purchase-response";
+import { PURCHASE_HISTORY_SQL } from "../../../../lib/purchase-records";
 import { canSetConsignmentStatus } from "../../../../lib/sale-method";
 import { STATUSES } from "../../../../lib/validation";
 import { randomUUID } from "node:crypto";
@@ -34,8 +39,7 @@ export async function GET(request) {
       const [row] = await sql`SELECT * FROM submissions WHERE id=${id}`;
       if (!row)
         return Response.json({ error: "Request not found" }, { status: 404 });
-      const accepted =
-        await sql`SELECT id,amount,accepted_at,accepted_name FROM offer_emails WHERE submission_id=${id} AND accepted_at IS NOT NULL ORDER BY accepted_at DESC`;
+      const accepted = await sql.query(PURCHASE_HISTORY_SQL, [id]);
       return Response.json(
         {
           submission: {
@@ -131,7 +135,9 @@ export async function PATCH(request) {
     if (
       !(submission.sale_method === "consignment"
         ? canSetConsignmentStatus(d.status, submission.status)
-        : STATUSES.includes(d.status))
+        : (STATUSES.includes(d.status) ||
+            PURCHASE_RESPONSE_STATUSES.includes(d.status)) &&
+          canSetPurchaseResponseStatus(d.status, submission.status))
     )
       return Response.json(
         { error: "Choose a status for this request type." },
@@ -200,6 +206,10 @@ export async function PATCH(request) {
       ok: true,
       saved: { ...saved, offer_photos: offerPhotoSummary(saved.offer_photos) },
       offer_email: await offerEmailSummary(d.id),
+      acceptances: (await sql.query(PURCHASE_HISTORY_SQL, [d.id])).map((o) => ({
+        ...o,
+        url: purchasePath(o.id),
+      })),
     });
   } catch {
     return Response.json(

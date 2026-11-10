@@ -10,6 +10,7 @@ import {
 } from "../../lib/sale-method";
 import ConsignmentOffers from "./ConsignmentOffers";
 import OfferContext from "./OfferContext";
+import { PURCHASE_RESPONSE_STATUSES } from "../../lib/purchase-response";
 import OfferAcceptance from "./OfferAcceptance";
 import ShipmentProgress from "./ShipmentProgress";
 import SignOutAction from "../components/SignOutAction";
@@ -199,6 +200,7 @@ export default function Workspace({ authenticated }) {
         ...current,
         ...d.saved,
         offer_email: d.offer_email,
+        acceptances: d.acceptances ?? current.acceptances,
       }));
       setOffer(d.saved.offer ?? "");
       setStatus(d.saved.status);
@@ -256,8 +258,8 @@ export default function Workspace({ authenticated }) {
       setSelected((current) => ({ ...current, offer_email: data.offer_email }));
       setSaved(
         data.offer_email?.acceptance?.receipt?.status === "sent"
-          ? "Acceptance confirmation emailed."
-          : "The acceptance is saved. Its confirmation email is not yet confirmed.",
+          ? "Seller response confirmation emailed."
+          : "The seller’s decision is saved. Its confirmation email is not yet confirmed.",
       );
     } catch (error) {
       showError(error);
@@ -598,12 +600,14 @@ export default function Workspace({ authenticated }) {
                           setSaved(false);
                         }}
                       >
-                        {consignment &&
-                          !CONSIGNMENT_MANUAL_STATUSES.includes(status) && (
-                            <option value={status} disabled>
-                              {status}
-                            </option>
-                          )}
+                        {((consignment &&
+                          !CONSIGNMENT_MANUAL_STATUSES.includes(status)) ||
+                          (!consignment &&
+                            PURCHASE_RESPONSE_STATUSES.includes(status))) && (
+                          <option value={status} disabled>
+                            {status}
+                          </option>
+                        )}
                         {(consignment
                           ? CONSIGNMENT_MANUAL_STATUSES
                           : STATUSES
@@ -616,6 +620,7 @@ export default function Workspace({ authenticated }) {
                       <label className="field">
                         Total offer (USD)
                         <input
+                          id="direct-offer-price"
                           inputMode="decimal"
                           aria-invalid={
                             error === OFFER_PRICE_ERROR || undefined
@@ -747,6 +752,17 @@ export default function Workspace({ authenticated }) {
                       onSend={(event) => save(event, true)}
                       onRefresh={() => open(selected.id, { reload: true })}
                       onRetryReceipt={retryReceipt}
+                      onPrepareCounter={(amount) => {
+                        setOffer(amount);
+                        setStatus("Offer ready");
+                        setSaved(false);
+                        setError("");
+                        requestAnimationFrame(() =>
+                          document
+                            .getElementById("direct-offer-price")
+                            ?.focus(),
+                        );
+                      }}
                     />
                   </>
                 )}

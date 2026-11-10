@@ -1,5 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import PurchaseResponseForm from "./PurchaseResponseForm";
+import PurchaseResponseDetails from "../../components/PurchaseResponseDetails";
+import { purchaseResponseLabel } from "../../../lib/purchase-response";
+import styles from "../../components/ConsignmentOffer.module.css";
 import { requestJSON } from "../../../lib/request-json";
 import { money } from "../../../lib/purchase-terms";
 import PurchaseTerms from "../../components/PurchaseTerms";
@@ -12,14 +16,14 @@ export default function OfferReview({ token, initialOffer }) {
   const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [responseMode, setResponseMode] = useState("");
   const message = useRef(null);
   const success = useRef(null);
   const snapshot = offer.snapshot;
   useEffect(() => {
     if (error) message.current?.focus();
   }, [error]);
-  async function accept(event) {
-    event.preventDefault();
+  async function send(payload) {
     if (busy) return;
     setBusy(true);
     setError("");
@@ -28,12 +32,12 @@ export default function OfferReview({ token, initialOffer }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name,
-          agree,
+          ...payload,
           termsVersion: snapshot.terms.version,
         }),
       });
       setOffer(result.offer);
+      setResponseMode("");
       requestAnimationFrame(() => success.current?.focus());
     } catch (failure) {
       setError(failure.message);
@@ -51,14 +55,51 @@ export default function OfferReview({ token, initialOffer }) {
   }
   return (
     <>
+      <a className="plain-button" href="/account">
+        ← Your account
+      </a>
       <span className="eyebrow">
         YOUR SELLMYSLABS OFFER · {snapshot.reference}
       </span>
-      <h1>{offer.acceptedAt ? "Offer accepted." : "Review your offer."}</h1>
+      <h1>
+        {offer.response
+          ? `${purchaseResponseLabel(offer.response.action)}.`
+          : offer.acceptedAt
+            ? "Offer accepted."
+            : "Review your offer."}
+      </h1>
       <p>
         For {snapshot.sellerName} · from {snapshot.buyer.name}
       </p>
-      {offer.acceptedAt ? (
+      {offer.response ? (
+        <section ref={success} tabIndex={-1} role="status">
+          <PurchaseResponseDetails
+            response={offer.response}
+            name={offer.responseName}
+            at={offer.respondedAt}
+          />
+          <p>
+            {offer.response.action === "counter"
+              ? "The shop will review your counteroffer. Any revised offer will appear in your account for approval."
+              : "Your decline is recorded. Any new offer will appear in your account."}
+          </p>
+          <p className="hint">
+            {offer.receiptSent
+              ? "A copy of your response has been sent to you and the shop."
+              : "Your response is saved. Its confirmation email is pending; you do not need to submit again."}
+          </p>
+          {!offer.isCurrent && (
+            <p>
+              This is an earlier response. Open your account for the latest
+              offer.
+            </p>
+          )}
+          <p>
+            Do not ship until you accept an offer and confirm shipping details
+            with the shop.
+          </p>
+        </section>
+      ) : offer.acceptedAt ? (
         <section
           className="purchase-confirmation"
           role="status"
@@ -93,11 +134,12 @@ export default function OfferReview({ token, initialOffer }) {
         </div>
       ) : (
         <p>
-          Check the items and terms below before accepting. If something is
-          incorrect, contact the shop first.
+          Review the items and terms below, then accept, decline, or send a
+          counteroffer.
         </p>
       )}
       {offer.acceptedAt && offer.isCurrent && <ShippingPanel token={token} />}
+      {offer.response && <h2>Original offer</h2>}
       <section className="purchase-summary" aria-label="Offer details">
         <div className="purchase-total">
           <span>Total for the listed collection</span>
@@ -132,8 +174,14 @@ export default function OfferReview({ token, initialOffer }) {
           <p>{snapshot.statement}</p>
         </section>
       )}
-      {offer.canAccept && (
-        <form className="purchase-acceptance" onSubmit={accept}>
+      {offer.canAccept && !responseMode && (
+        <form
+          className="purchase-acceptance"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send({ name, agree });
+          }}
+        >
           <h2>Accept this offer</h2>
           <fieldset disabled={busy} className="form-fields">
             <label className="field">
@@ -169,6 +217,46 @@ export default function OfferReview({ token, initialOffer }) {
             or payment-account details are needed here.
           </p>
         </form>
+      )}
+      {offer.canAccept && !responseMode && (
+        <div className={styles.controls}>
+          <button
+            type="button"
+            className="button secondary"
+            disabled={busy}
+            onClick={() => {
+              setError("");
+              setResponseMode("counter");
+            }}
+          >
+            Counter offer
+          </button>
+          <button
+            type="button"
+            className="plain-button"
+            disabled={busy}
+            onClick={() => {
+              setError("");
+              setResponseMode("decline");
+            }}
+          >
+            Decline
+          </button>
+        </div>
+      )}
+      {offer.canAccept && responseMode && (
+        <PurchaseResponseForm
+          key={responseMode}
+          mode={responseMode}
+          snapshot={snapshot}
+          initialName={name}
+          busy={busy}
+          onSubmit={send}
+          onCancel={() => {
+            setResponseMode("");
+            setError("");
+          }}
+        />
       )}
       {error && (
         <div className="error" role="alert" tabIndex={-1} ref={message}>

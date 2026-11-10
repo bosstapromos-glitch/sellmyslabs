@@ -1,3 +1,5 @@
+import PurchaseResponseDetails from "../components/PurchaseResponseDetails";
+import { purchaseResponseLabel } from "../../lib/purchase-response";
 export default function OfferAcceptance({
   email,
   history = [],
@@ -7,15 +9,45 @@ export default function OfferAcceptance({
   onSend,
   onRefresh,
   onRetryReceipt,
+  onPrepareCounter,
 }) {
   const acceptance = email?.acceptance;
   const previous = history.filter((record) => record.id !== email?.id);
   return (
-    <section className="offer-email" aria-label="Seller acceptance">
-      <h3>Seller acceptance</h3>
+    <section className="offer-email" aria-label="Seller response">
+      <h3>Seller response</h3>
       {acceptance ? (
         <>
-          {acceptance.accepted_at ? (
+          {acceptance.response ? (
+            <>
+              <PurchaseResponseDetails
+                response={acceptance.response}
+                name={acceptance.response_name}
+                at={acceptance.responded_at}
+              />
+              <p className="hint">
+                {acceptance.receipt?.status === "sent"
+                  ? "Response confirmation sent to the seller, with your copy."
+                  : "The response is saved. Its confirmation email has not been confirmed as sent."}
+              </p>
+              {acceptance.response.action === "counter" && activeOffer && (
+                <>
+                  <button
+                    type="button"
+                    className="button secondary small"
+                    disabled={busy || unsaved}
+                    onClick={() => onPrepareCounter(acceptance.response.amount)}
+                  >
+                    Prepare revised offer
+                  </button>
+                  <p className="hint">
+                    Review the proposed total and your message, then save to
+                    send a revised offer for acceptance.
+                  </p>
+                </>
+              )}
+            </>
+          ) : acceptance.accepted_at ? (
             <div className="delivery-state delivery-success" role="status">
               <strong>Accepted</strong>
               <p>
@@ -30,8 +62,7 @@ export default function OfferAcceptance({
             </div>
           ) : (
             <p>
-              Awaiting the seller’s acceptance of the listed offer and Purchase
-              Terms.
+              Awaiting the seller’s response to this offer and Purchase Terms.
             </p>
           )}
           <div className="offer-email-actions">
@@ -41,9 +72,11 @@ export default function OfferAcceptance({
               target="_blank"
               rel="noopener noreferrer"
             >
-              {acceptance.accepted_at
-                ? "View acceptance record ↗"
-                : "View seller’s offer ↗"}
+              {acceptance.response
+                ? "View response record ↗"
+                : acceptance.accepted_at
+                  ? "View acceptance record ↗"
+                  : "View seller’s offer ↗"}
             </a>
             <button
               type="button"
@@ -51,7 +84,7 @@ export default function OfferAcceptance({
               disabled={busy || unsaved}
               onClick={onRefresh}
             >
-              Refresh acceptance
+              Refresh response
             </button>
             {acceptance.receipt?.can_retry && (
               <button
@@ -66,7 +99,7 @@ export default function OfferAcceptance({
           </div>
           {unsaved && (
             <p className="hint">
-              Save your changes before refreshing acceptance.
+              Save your changes before refreshing the response.
             </p>
           )}
           {acceptance.accepted_at && (
@@ -103,7 +136,7 @@ export default function OfferAcceptance({
       )}
       {previous.length > 0 && (
         <div className="purchase-history">
-          <h4>Earlier acceptances</h4>
+          <h4>Earlier decisions</h4>
           <ul>
             {previous.map((record) => (
               <li key={record.id}>
@@ -113,8 +146,15 @@ export default function OfferAcceptance({
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  ${Number(record.amount).toFixed(2)} · {record.accepted_name} ·{" "}
-                  {new Date(record.accepted_at).toLocaleDateString()} ↗
+                  ${Number(record.amount).toFixed(2)} ·{" "}
+                  {record.response
+                    ? purchaseResponseLabel(record.response.action)
+                    : "Accepted"}{" "}
+                  · {record.response_name || record.accepted_name} ·{" "}
+                  {new Date(
+                    record.responded_at || record.accepted_at,
+                  ).toLocaleDateString()}{" "}
+                  ↗
                 </a>
               </li>
             ))}

@@ -11,9 +11,12 @@ export async function POST(request) {
     if (typeof id !== "string" || !/^[a-f\d-]{36}$/i.test(id))
       return Response.json({ error: "Invalid offer." }, { status: 400 });
     const [row] =
-      await db()`SELECT submission_id FROM offer_emails WHERE id=${id} AND accepted_at IS NOT NULL`;
+      await db()`SELECT submission_id FROM offer_emails WHERE id=${id} AND (accepted_at IS NOT NULL OR responded_at IS NOT NULL)`;
     if (!row)
-      return Response.json({ error: "Acceptance not found." }, { status: 404 });
+      return Response.json(
+        { error: "Seller decision not found." },
+        { status: 404 },
+      );
     await deliverPurchaseReceipt(id);
     return Response.json({
       offer_email: await offerEmailSummary(row.submission_id),
@@ -22,7 +25,7 @@ export async function POST(request) {
     return Response.json(
       {
         error:
-          "The confirmation could not be checked. The acceptance record is still saved.",
+          "The confirmation could not be checked. The seller’s decision is still saved.",
       },
       { status: 503 },
     );

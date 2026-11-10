@@ -1,3 +1,4 @@
+import PurchaseOfferSummary from "../PurchaseOfferSummary";
 import ConsignmentApprovals from "../ConsignmentApprovals";
 import { saleMethodLabel } from "../../../lib/sale-method";
 import { CONSIGNMENT_PAYMENT } from "../../../lib/consignment";
@@ -45,36 +46,12 @@ export default async function Page({ params }) {
         approvals={request.consignmentApprovals}
         closed={request.closed}
       />
-      {request.offer ? (
-        <section className={styles.offer} aria-label="Your offer">
-          <div>
-            <h2>{request.offer.acceptedAt ? "Agreed price" : "Our offer"}</h2>
-            <strong className={styles.amount}>
-              {money(request.offer.amount)}
-            </strong>
-            <p className={styles.muted}>Total for the listed collection</p>
-          </div>
-          <div>
-            {request.offer.url ? (
-              <a className="button" href={`${request.offer.url}?from=account`}>
-                {request.offer.acceptedAt
-                  ? "View accepted offer"
-                  : request.closed
-                    ? "View offer"
-                    : "Review offer"}
-              </a>
-            ) : (
-              <p>
-                This earlier offer is in your email.{" "}
-                <a className="text-link" href={BUSINESS.phoneHref}>
-                  Contact the shop
-                </a>{" "}
-                for an updated acceptance link.
-              </p>
-            )}
-          </div>
-        </section>
-      ) : (
+      <PurchaseOfferSummary
+        offer={request.offer}
+        closed={request.closed}
+        records={request.purchaseRecords}
+      />
+      {!request.offer && (
         <p className={styles.notice}>
           {request.closed
             ? "This request is closed. Contact the shop if you need help."
