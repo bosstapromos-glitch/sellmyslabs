@@ -7,14 +7,18 @@ export default function AccountDraftStatus({ account, disabled }) {
     );
   return (
     <section className="account-draft-status" aria-label="Save your draft">
-      {account.active ? (
+      {account.active || account.user ? (
         <>
           <p role="status">
             {account.error
               ? "Changes not saved."
-              : account.saving || account.dirty
-                ? "Saving to your account…"
-                : "Saved to your account."}{" "}
+              : account.blocked
+                ? "This draft is unavailable."
+                : account.saving || account.dirty
+                  ? "Saving to your account…"
+                  : account.active
+                    ? "Saved to your account."
+                    : "Your draft will save automatically."}{" "}
             <a className="text-link" href="/account/drafts">
               Your drafts
             </a>
@@ -23,21 +27,6 @@ export default function AccountDraftStatus({ account, disabled }) {
             Continue on another device by signing in to the same account. Photos
             are kept for 30 days from upload.
           </p>
-        </>
-      ) : account.user ? (
-        <>
-          <p>Continue on another device.</p>
-          <button
-            className="button secondary"
-            type="button"
-            disabled={disabled || account.saving || account.blocked}
-            onClick={() => account.save().catch(() => {})}
-          >
-            Save draft to my account
-          </button>
-          <a className="plain-button" href="/account/drafts">
-            Your drafts
-          </a>
         </>
       ) : (
         <p>
@@ -83,7 +72,7 @@ export default function AccountDraftStatus({ account, disabled }) {
               type="button"
               className="plain-button"
               onClick={() =>
-                account.active
+                account.active || account.user
                   ? account.save().catch(() => {})
                   : window.location.reload()
               }

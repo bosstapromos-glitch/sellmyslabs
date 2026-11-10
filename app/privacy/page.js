@@ -76,18 +76,19 @@ export default function Page() {
         </p>
         <h2>Drafts saved to your account</h2>
         <p>
-          When you choose “Save draft to my account”, we store your draft
-          details and photo references privately with your account. Later
-          changes save automatically. Sign in to the same account on another
-          device to continue. Drafts remain available for 30 days after their
-          last save; photos expire 30 days after upload. Expired drafts are
-          scheduled for deletion after 31 days. Clearing an account draft
-          removes it from your account; uploaded photos follow the deletion
-          schedule above.
+          When you’re signed in, your draft details and photo references save
+          automatically and privately to your account as you fill out the form.
+          A draft started in this browser before sign-in is saved to your
+          account when you return to the form after signing in. Sign in to the
+          same account on another device to continue. Drafts remain available
+          for 30 days after their last save; photos expire 30 days after upload.
+          Expired drafts are scheduled for deletion after 31 days. Clearing an
+          account draft removes it from your account; uploaded photos follow the
+          deletion schedule above.
         </p>
         <h2>Information on your device</h2>
         <p>
-          Before you save to an account, the request form saves a draft in this
+          When you’re not signed in, the request form saves a draft in this
           browser so you can continue later. Small photo previews and private
           upload references are saved on this device so uploaded photos can be
           restored for up to 30 days in the same browser. A browser-only draft

@@ -18,7 +18,10 @@ export default async function Page() {
       {!drafts.length && (
         <section className={styles.empty}>
           <h2>No saved drafts.</h2>
-          <p>Save a request to your account to continue on another device.</p>
+          <p>
+            Start a request while signed in. Your draft saves automatically so
+            you can continue on another device.
+          </p>
         </section>
       )}
       <a className="button" href="/sell">

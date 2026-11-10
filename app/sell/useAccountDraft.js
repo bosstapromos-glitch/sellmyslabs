@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { requestJSON } from "../../lib/request-json";
 import { clearDraftPhotos } from "../../lib/draft-photos";
-import { DRAFT_KEY } from "../../lib/draft";
+import { DRAFT_KEY, hasDraftContent } from "../../lib/draft";
 
 const snapshot = (draft, photos) => ({
   data: { ...draft, consent: false },
@@ -34,7 +34,11 @@ export default function useAccountDraft({
   const signature = JSON.stringify(snapshot(draft, photos));
   const latest = useRef({ draft, photos, signature });
   latest.current = { draft, photos, signature };
-  const dirty = active && signature !== savedSignature;
+  const blocked = requested && !active;
+  const hasContent = hasDraftContent(draft) || photos.length > 0;
+  const dirty =
+    (active || (!!user && !blocked && hasContent)) &&
+    signature !== savedSignature;
   function adopt(result) {
     version.current = result.version;
     activeId.current = result.id;
@@ -129,13 +133,35 @@ export default function useAccountDraft({
     return job;
   }
   useEffect(() => {
-    if (!active || !dirty || done || paused || error || loading || conflict)
+    if (
+      !ready ||
+      !user ||
+      blocked ||
+      !dirty ||
+      done ||
+      paused ||
+      error ||
+      loading ||
+      conflict
+    )
       return;
     const timer = setTimeout(() => {
       save().catch(() => {});
     }, 900);
     return () => clearTimeout(timer);
-  }, [signature, active, done, paused, error, loading, conflict]);
+  }, [
+    signature,
+    active,
+    user,
+    ready,
+    blocked,
+    dirty,
+    done,
+    paused,
+    error,
+    loading,
+    conflict,
+  ]);
   async function clear() {
     if (activeId.current) {
       await queue.current;
@@ -168,7 +194,7 @@ export default function useAccountDraft({
     user,
     active,
     loading: ready && loading,
-    blocked: requested && !active,
+    blocked,
     saving,
     dirty,
     error,

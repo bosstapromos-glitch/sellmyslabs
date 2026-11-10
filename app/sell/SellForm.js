@@ -72,7 +72,7 @@ export default function SellForm() {
     photos,
     ready,
     done: !!reference,
-    paused: busy || savingPhotos,
+    paused: busy || savingPhotos || preparing || importing,
     onRestore: (data, loaded, expired) => {
       setDraft(data);
       setPhotos(loaded);
@@ -320,7 +320,8 @@ export default function SellForm() {
     setBusy(true);
     setError("");
     try {
-      const revision = account.active ? await account.save() : null;
+      const revision =
+        account.active || account.user ? await account.save() : null;
       const data = new FormData();
       data.set("data", JSON.stringify(parsed.data));
       if (revision) data.set("draftVersion", String(revision));
