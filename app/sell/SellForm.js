@@ -24,6 +24,7 @@ import { Field, PhotoList } from "./SellFields";
 import styles from "./SellForm.module.css";
 import useAccountDraft from "./useAccountDraft";
 import AccountDraftStatus from "./AccountDraftStatus";
+import ResumeDraft from "../components/ResumeDraft";
 import InspectionNotice from "../components/InspectionNotice";
 import {
   MAX_SUBMISSION_PHOTOS,
@@ -394,8 +395,16 @@ export default function SellForm() {
         </h1>
         <p>{descriptions[step]}</p>
       </header>
+      {ready && account.resumeDraft && (
+        <ResumeDraft
+          draft={account.resumeDraft}
+          otherCount={account.savedDraftCount - 1}
+        />
+      )}
       <InspectionNotice />
-      {ready && <AccountDraftStatus account={account} disabled={working} />}
+      {ready && !account.resumeDraft && (
+        <AccountDraftStatus account={account} disabled={working} />
+      )}
       <ol className={styles.progress} aria-label="Request progress">
         {stages.map((label, index) => (
           <li

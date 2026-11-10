@@ -16,6 +16,7 @@ export default function useAccountDraft({
   paused,
   onRestore,
 }) {
+  const [savedDrafts, setSavedDrafts] = useState([]);
   const [user, setUser] = useState(null),
     [active, setActive] = useState(false),
     [loading, setLoading] = useState(true),
@@ -75,6 +76,7 @@ export default function useAccountDraft({
       try {
         const session = await requestJSON("/api/account/drafts");
         setUser({ email: session.email });
+        setSavedDrafts(session.drafts || []);
         if (id)
           adopt(
             await requestJSON(
@@ -174,6 +176,10 @@ export default function useAccountDraft({
         }),
       });
     }
+    const clearedId = activeId.current;
+    setSavedDrafts((current) =>
+      current.filter((draft) => draft.id !== clearedId),
+    );
     activeId.current = null;
     version.current = 0;
     stopped.current = false;
@@ -192,6 +198,11 @@ export default function useAccountDraft({
   }
   return {
     user,
+    resumeDraft:
+      user && !active && !hasContent && !requested && !loading
+        ? savedDrafts[0]
+        : null,
+    savedDraftCount: savedDrafts.length,
     active,
     loading: ready && loading,
     blocked,

@@ -24,7 +24,7 @@ export default async function Page({ searchParams }) {
     <main id="main" className={`wrap ${styles.page}`}>
       <div className={styles.heading}>
         <div>
-          <h1>Your requests</h1>
+          <h1>Your account</h1>
           <p className={styles.muted}>
             {identity.email || "Verify your email to view your requests."}
           </p>
@@ -46,6 +46,7 @@ export default async function Page({ searchParams }) {
         </section>
       ) : requests.length ? (
         <>
+          <h2>Submitted requests</h2>
           <ul className={styles.requests}>
             {requests.map((request) => (
               <li key={request.id}>
@@ -108,6 +109,11 @@ export default async function Page({ searchParams }) {
             </nav>
           )}
         </>
+      ) : drafts.length ? (
+        <section className={styles.empty}>
+          <h2>Submitted requests</h2>
+          <p>Once you send a request, you can follow its progress here.</p>
+        </section>
       ) : (
         <section className={styles.empty}>
           <h2>No requests here yet.</h2>

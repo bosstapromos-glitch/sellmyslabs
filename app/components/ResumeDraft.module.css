@@ -1,0 +1,51 @@
+.resume {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  margin: 24px 0 32px;
+  padding: 24px;
+  background: var(--wash);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.resume h2 {
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+}
+.resume h3 {
+  font-size: 17px;
+  line-height: 1.4;
+  margin: 0 0 6px;
+  overflow-wrap: anywhere;
+}
+.resume p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+@media (max-width: 600px) {
+  .resume {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    gap: 20px;
+  }
+  .actions {
+    align-items: stretch;
+    text-align: center;
+  }
+}
+
+.savedAt {
+  display: inline-block;
+}

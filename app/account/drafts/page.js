@@ -24,7 +24,7 @@ export default async function Page() {
           </p>
         </section>
       )}
-      <a className="button" href="/sell">
+      <a className={drafts.length ? "plain-button" : "button"} href="/sell">
         Start a request
       </a>{" "}
       <a className="plain-button" href="/account">
