@@ -85,6 +85,14 @@ test("purchase copies preserve the exact collection, terms and statement without
   assert.match(record, /\$80.00/);
   assert.match(record, /TAG 9 · Qty 2 · Cert QA123/);
   assert.match(record, /72 hours/);
+  assert.match(record, /1–2 weeks after delivery/);
+  assert.equal(snapshot.inspectionHours, 336);
+  assert.equal(snapshot.terms.version, "2026-11-09");
+  assert.equal(
+    purchaseSnapshot({ ...seller, cards: seller.cards.slice(1) }, "80")
+      .inspectionHours,
+    72,
+  );
   assert.match(record, /initiate payment the same day/);
   assert.match(record, /ACH, wire, Zelle, Cash App or Venmo/);
   assert.match(record, /seller pays return shipping/);

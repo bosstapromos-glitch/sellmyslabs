@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./SellForm.module.css";
+import { photoPreview } from "../../lib/prepare-photo";
 
 export function Field({
   id,
@@ -34,14 +35,21 @@ export function Field({
 function Photo({ file, index, onRemove, disabled }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
-    const next = URL.createObjectURL(file);
+    const next = URL.createObjectURL(photoPreview(file));
     setUrl(next);
     return () => URL.revokeObjectURL(next);
   }, [file]);
   return (
     <li>
       <div className={styles.photoImage}>
-        {url && <img src={url} alt={`Your uploaded photo ${index + 1}`} />}
+        {url && (
+          <img
+            src={url}
+            alt={`Your uploaded photo ${index + 1}`}
+            loading="lazy"
+            decoding="async"
+          />
+        )}
       </div>
       <div className={styles.photoCaption}>
         <span>Photo {index + 1}</span>

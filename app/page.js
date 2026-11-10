@@ -1,5 +1,6 @@
 import Image from "next/image";
 import GoogleReviews from "./components/GoogleReviews";
+import InspectionNotice from "./components/InspectionNotice";
 export const metadata = { alternates: { canonical: "/" } };
 const businessData = {
   "@context": "https://schema.org",
@@ -69,6 +70,7 @@ export default function Home() {
               </a>
             </div>
             <p className="micro">No obligation to sell.</p>
+            <InspectionNotice />
             <div className="accepted">
               <span>GRADED CARDS WE ACCEPT</span>
               <div>

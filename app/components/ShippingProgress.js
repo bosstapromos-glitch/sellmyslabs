@@ -58,9 +58,16 @@ export default function ShippingProgress({ shipment }) {
       )}
       {shipment.receivedAt && !shipment.inspectedAt && !shipment.closed && (
         <p className="hint">
-          Inspection is due within 72 hours of delivery:{" "}
+          Inspection is due within{" "}
+          {shipment.inspectionHours === 336
+            ? "14 days (1–2 weeks)"
+            : "72 hours"}{" "}
+          of delivery, under your accepted offer:{" "}
           {journeyTime(
-            new Date(new Date(shipment.receivedAt).getTime() + 72 * 3600000),
+            new Date(
+              new Date(shipment.receivedAt).getTime() +
+                (shipment.inspectionHours || 72) * 3600000,
+            ),
           )}{" "}
           MT.
         </p>

@@ -16,6 +16,11 @@ import { requestJSON } from "../../lib/request-json";
 import useUnsavedChanges from "../components/useUnsavedChanges";
 import { Field, PhotoList } from "./SellFields";
 import styles from "./SellForm.module.css";
+import InspectionNotice from "../components/InspectionNotice";
+import {
+  MAX_SUBMISSION_PHOTOS,
+  prepareSelection,
+} from "../../lib/photo-selection";
 
 const stages = ["Your items", "Contact", "Review"];
 const titles = [
@@ -38,6 +43,9 @@ export default function SellForm() {
   const [busy, setBusy] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [preparing, setPreparing] = useState(false);
+  const [photoProgress, setPhotoProgress] = useState(null);
+  const preparingLock = useRef(false);
+  const [expandedItem, setExpandedItem] = useState(0);
   const [importing, setImporting] = useState(false);
   const [reference, setReference] = useState("");
   const [restored, setRestored] = useState(false);
@@ -134,6 +142,8 @@ export default function SellForm() {
     if (!Object.keys(next).length) return true;
     focusInvalid.current = true;
     setStep(stage);
+    const invalidItem = Object.keys(next)[0]?.match(/^item-(\d+)-/);
+    if (invalidItem) setExpandedItem(Number(invalidItem[1]));
     setErrors(next);
     setError("");
     return false;
@@ -152,25 +162,30 @@ export default function SellForm() {
   async function choosePhotos(event) {
     const selected = Array.from(event.target.files || []);
     event.target.value = "";
-    if (!selected.length || working) return;
+    if (!selected.length || working || preparingLock.current) return;
     setError("");
-    if (photos.length + selected.length > 8) {
-      setError("You can add up to 8 photos. Remove one before adding more.");
-      return;
-    }
+    preparingLock.current = true;
     setPreparing(true);
     try {
-      const prepared = [];
-      for (const file of selected) prepared.push(await preparePhoto(file));
-      setPhotos((current) => [...current, ...prepared]);
-      clearError("photos");
-    } catch (failure) {
-      setError(
-        failure.message ||
-          "That photo could not be prepared. Your other photos are still attached.",
+      const result = await prepareSelection(
+        selected,
+        MAX_SUBMISSION_PHOTOS - photos.length,
+        preparePhoto,
+        (photo) => setPhotos((current) => [...current, photo]),
+        setPhotoProgress,
       );
+      if (result.added) clearError("photos");
+      const messages = [...result.failures];
+      if (result.skipped)
+        messages.push(
+          `Your request has room for ${MAX_SUBMISSION_PHOTOS} photos. ${result.skipped} extra photo${result.skipped === 1 ? " was" : "s were"} not added. Use clear group photos for a larger collection.`,
+        );
+      if (messages.length)
+        setError(messages.join(" ") + " Your added photos are still attached.");
     } finally {
+      preparingLock.current = false;
       setPreparing(false);
+      setPhotoProgress(null);
     }
   }
   async function chooseCSV(event) {
@@ -182,6 +197,7 @@ export default function SellForm() {
       if (file.size > 200000) throw Error("Please keep the CSV below 200 KB.");
       const items = importCards(await file.text());
       update("cards", items);
+      setExpandedItem(0);
       setErrors({});
     } catch (failure) {
       setError(failure.message);
@@ -214,6 +230,7 @@ export default function SellForm() {
         "We could not send your request. Your details are still here; please try again.",
       );
       setReference(result.reference);
+      setPhotos([]);
       try {
         localStorage.removeItem(KEY);
       } catch {}
@@ -235,6 +252,7 @@ export default function SellForm() {
             Your request is with our team.
           </h1>
         </header>
+        <InspectionNotice />
         <section className={styles.success} aria-live="polite">
           <p>
             We’ll reply to <strong>{draft.email}</strong> with an offer or an
@@ -272,6 +290,7 @@ export default function SellForm() {
         </h1>
         <p>{descriptions[step]}</p>
       </header>
+      <InspectionNotice />
       <ol className={styles.progress} aria-label="Request progress">
         {stages.map((label, index) => (
           <li
@@ -309,7 +328,27 @@ export default function SellForm() {
                     aria-labelledby={`item-${index}-heading`}
                   >
                     <div className={styles.sectionHeading}>
-                      <h2 id={`item-${index}-heading`}>Item {index + 1}</h2>
+                      <h2 id={`item-${index}-heading`}>
+                        <button
+                          type="button"
+                          className={styles.itemToggle}
+                          aria-expanded={expandedItem === index}
+                          aria-controls={`item-${index}-details`}
+                          onClick={() =>
+                            setExpandedItem(
+                              expandedItem === index ? null : index,
+                            )
+                          }
+                        >
+                          <span>
+                            Item {index + 1}
+                            {c.name ? ` · ${c.name}` : ""}
+                          </span>
+                          <span aria-hidden="true">
+                            {expandedItem === index ? "−" : "+"}
+                          </span>
+                        </button>
+                      </h2>
                       {draft.cards.length > 1 && (
                         <button
                           type="button"
@@ -319,6 +358,7 @@ export default function SellForm() {
                               "cards",
                               draft.cards.filter((_, i) => i !== index),
                             );
+                            setExpandedItem(Math.max(0, index - 1));
                             setErrors({});
                           }}
                         >
@@ -326,221 +366,226 @@ export default function SellForm() {
                         </button>
                       )}
                     </div>
-                    <fieldset
-                      className={styles.typeGroup}
-                      aria-describedby={
-                        errors[key("itemType")]
-                          ? `${key("itemType")}-error`
-                          : undefined
-                      }
+                    <div
+                      id={`item-${index}-details`}
+                      hidden={expandedItem !== index}
                     >
-                      <legend>Item type</legend>
-                      <div className={styles.typeChoices}>
-                        {ITEM_TYPES.map((type, t) => (
-                          <label key={type} className={styles.typeChoice}>
-                            <input
-                              {...props(key("itemType"))}
-                              id={`${key("itemType")}-${t}`}
-                              className="sr-only"
-                              type="radio"
-                              required
-                              checked={c.itemType === type}
-                              value={type}
-                              onChange={() => card(index, "itemType", type)}
-                            />
-                            <span>{type}</span>
-                          </label>
-                        ))}
-                      </div>
-                      {errors[key("itemType")] && (
-                        <p
-                          id={`${key("itemType")}-error`}
-                          className={styles.fieldError}
-                        >
-                          {errors[key("itemType")]}
-                        </p>
-                      )}
-                    </fieldset>
-                    {c.itemType && (
-                      <>
-                        <div className={styles.grid}>
-                          <Field
-                            id={key("name")}
-                            label={
-                              c.itemType === "Sealed product"
-                                ? "Product name & set"
-                                : "Card name & set"
-                            }
-                            error={errors[key("name")]}
-                            full
+                      <fieldset
+                        className={styles.typeGroup}
+                        aria-describedby={
+                          errors[key("itemType")]
+                            ? `${key("itemType")}-error`
+                            : undefined
+                        }
+                      >
+                        <legend>Item type</legend>
+                        <div className={styles.typeChoices}>
+                          {ITEM_TYPES.map((type, t) => (
+                            <label key={type} className={styles.typeChoice}>
+                              <input
+                                {...props(key("itemType"))}
+                                id={`${key("itemType")}-${t}`}
+                                className="sr-only"
+                                type="radio"
+                                required
+                                checked={c.itemType === type}
+                                value={type}
+                                onChange={() => card(index, "itemType", type)}
+                              />
+                              <span>{type}</span>
+                            </label>
+                          ))}
+                        </div>
+                        {errors[key("itemType")] && (
+                          <p
+                            id={`${key("itemType")}-error`}
+                            className={styles.fieldError}
                           >
-                            <input
-                              {...props(key("name"))}
-                              required
-                              minLength={2}
-                              maxLength={180}
-                              value={c.name}
-                              onChange={(e) =>
-                                card(index, "name", e.target.value)
-                              }
-                              placeholder={
-                                c.itemType === "Sealed product"
-                                  ? "e.g. Pokémon 151 booster bundle"
-                                  : "e.g. Charizard ex · Obsidian Flames · #223"
-                              }
-                            />
-                          </Field>
-                          <Field
-                            id={key("category")}
-                            label="Category"
-                            error={errors[key("category")]}
-                          >
-                            <select
-                              {...props(key("category"))}
-                              required
-                              value={c.category}
-                              onChange={(e) =>
-                                card(index, "category", e.target.value)
-                              }
-                            >
-                              <option value="" disabled>
-                                Select…
-                              </option>
-                              {CATEGORIES.map((v) => (
-                                <option key={v}>{v}</option>
-                              ))}
-                            </select>
-                          </Field>
-                          <Field
-                            id={key("quantity")}
-                            label="Quantity"
-                            error={errors[key("quantity")]}
-                          >
-                            <input
-                              {...props(key("quantity"))}
-                              required
-                              type="number"
-                              inputMode="numeric"
-                              min="1"
-                              max="10000"
-                              step="1"
-                              value={c.quantity}
-                              onChange={(e) =>
-                                card(index, "quantity", e.target.value)
-                              }
-                            />
-                          </Field>
-                          {graded && (
-                            <>
-                              <Field
-                                id={key("grader")}
-                                label="Grading company"
-                                error={errors[key("grader")]}
-                              >
-                                <select
-                                  {...props(key("grader"))}
-                                  required
-                                  value={c.grader}
-                                  onChange={(e) =>
-                                    card(index, "grader", e.target.value)
-                                  }
-                                >
-                                  <option value="" disabled>
-                                    Select…
-                                  </option>
-                                  {GRADERS.map((v) => (
-                                    <option key={v}>{v}</option>
-                                  ))}
-                                </select>
-                              </Field>
-                              <Field
-                                id={key("grade")}
-                                label="Grade"
-                                error={errors[key("grade")]}
-                              >
-                                <input
-                                  {...props(key("grade"))}
-                                  required
-                                  maxLength={30}
-                                  value={c.grade}
-                                  onChange={(e) =>
-                                    card(index, "grade", e.target.value)
-                                  }
-                                  placeholder="e.g. 10 or 9.5"
-                                />
-                              </Field>
-                            </>
-                          )}
-                          {!graded && (
+                            {errors[key("itemType")]}
+                          </p>
+                        )}
+                      </fieldset>
+                      {c.itemType && (
+                        <>
+                          <div className={styles.grid}>
                             <Field
-                              id={key("condition")}
-                              label="Condition notes"
-                              optional
+                              id={key("name")}
+                              label={
+                                c.itemType === "Sealed product"
+                                  ? "Product name & set"
+                                  : "Card name & set"
+                              }
+                              error={errors[key("name")]}
                               full
-                              error={errors[key("condition")]}
                             >
-                              <textarea
-                                {...props(key("condition"))}
-                                maxLength={500}
-                                value={c.condition}
+                              <input
+                                {...props(key("name"))}
+                                required
+                                minLength={2}
+                                maxLength={180}
+                                value={c.name}
                                 onChange={(e) =>
-                                  card(index, "condition", e.target.value)
+                                  card(index, "name", e.target.value)
                                 }
                                 placeholder={
                                   c.itemType === "Sealed product"
-                                    ? "Any dents, tears or damage to the seal?"
-                                    : "Any wear, marks or damage?"
+                                    ? "e.g. Pokémon 151 booster bundle"
+                                    : "e.g. Charizard ex · Obsidian Flames · #223"
                                 }
                               />
                             </Field>
-                          )}
-                        </div>
-                        <details className={styles.optionalDetails}>
-                          <summary>
-                            {graded
-                              ? "Certification & item price"
-                              : "Item asking price"}
-                            <span className={styles.optional}>Optional</span>
-                          </summary>
-                          <div className={styles.grid}>
-                            {graded && (
-                              <Field
-                                id={key("cert")}
-                                label="Certification number"
-                                optional
-                                error={errors[key("cert")]}
+                            <Field
+                              id={key("category")}
+                              label="Category"
+                              error={errors[key("category")]}
+                            >
+                              <select
+                                {...props(key("category"))}
+                                required
+                                value={c.category}
+                                onChange={(e) =>
+                                  card(index, "category", e.target.value)
+                                }
                               >
-                                <input
-                                  {...props(key("cert"))}
-                                  maxLength={80}
-                                  value={c.cert}
+                                <option value="" disabled>
+                                  Select…
+                                </option>
+                                {CATEGORIES.map((v) => (
+                                  <option key={v}>{v}</option>
+                                ))}
+                              </select>
+                            </Field>
+                            <Field
+                              id={key("quantity")}
+                              label="Quantity"
+                              error={errors[key("quantity")]}
+                            >
+                              <input
+                                {...props(key("quantity"))}
+                                required
+                                type="number"
+                                inputMode="numeric"
+                                min="1"
+                                max="10000"
+                                step="1"
+                                value={c.quantity}
+                                onChange={(e) =>
+                                  card(index, "quantity", e.target.value)
+                                }
+                              />
+                            </Field>
+                            {graded && (
+                              <>
+                                <Field
+                                  id={key("grader")}
+                                  label="Grading company"
+                                  error={errors[key("grader")]}
+                                >
+                                  <select
+                                    {...props(key("grader"))}
+                                    required
+                                    value={c.grader}
+                                    onChange={(e) =>
+                                      card(index, "grader", e.target.value)
+                                    }
+                                  >
+                                    <option value="" disabled>
+                                      Select…
+                                    </option>
+                                    {GRADERS.map((v) => (
+                                      <option key={v}>{v}</option>
+                                    ))}
+                                  </select>
+                                </Field>
+                                <Field
+                                  id={key("grade")}
+                                  label="Grade"
+                                  error={errors[key("grade")]}
+                                >
+                                  <input
+                                    {...props(key("grade"))}
+                                    required
+                                    maxLength={30}
+                                    value={c.grade}
+                                    onChange={(e) =>
+                                      card(index, "grade", e.target.value)
+                                    }
+                                    placeholder="e.g. 10 or 9.5"
+                                  />
+                                </Field>
+                              </>
+                            )}
+                            {!graded && (
+                              <Field
+                                id={key("condition")}
+                                label="Condition notes"
+                                optional
+                                full
+                                error={errors[key("condition")]}
+                              >
+                                <textarea
+                                  {...props(key("condition"))}
+                                  maxLength={500}
+                                  value={c.condition}
                                   onChange={(e) =>
-                                    card(index, "cert", e.target.value)
+                                    card(index, "condition", e.target.value)
+                                  }
+                                  placeholder={
+                                    c.itemType === "Sealed product"
+                                      ? "Any dents, tears or damage to the seal?"
+                                      : "Any wear, marks or damage?"
                                   }
                                 />
                               </Field>
                             )}
-                            <Field
-                              id={key("asking")}
-                              label="Asking price per item (USD)"
-                              optional
-                              error={errors[key("asking")]}
-                            >
-                              <input
-                                {...props(key("asking"))}
-                                inputMode="decimal"
-                                maxLength={20}
-                                value={c.asking}
-                                onChange={(e) =>
-                                  card(index, "asking", e.target.value)
-                                }
-                                placeholder="e.g. 125.00"
-                              />
-                            </Field>
                           </div>
-                        </details>
-                      </>
-                    )}
+                          <details className={styles.optionalDetails}>
+                            <summary>
+                              {graded
+                                ? "Certification & item price"
+                                : "Item asking price"}
+                              <span className={styles.optional}>Optional</span>
+                            </summary>
+                            <div className={styles.grid}>
+                              {graded && (
+                                <Field
+                                  id={key("cert")}
+                                  label="Certification number"
+                                  optional
+                                  error={errors[key("cert")]}
+                                >
+                                  <input
+                                    {...props(key("cert"))}
+                                    maxLength={80}
+                                    value={c.cert}
+                                    onChange={(e) =>
+                                      card(index, "cert", e.target.value)
+                                    }
+                                  />
+                                </Field>
+                              )}
+                              <Field
+                                id={key("asking")}
+                                label="Asking price per item (USD)"
+                                optional
+                                error={errors[key("asking")]}
+                              >
+                                <input
+                                  {...props(key("asking"))}
+                                  inputMode="decimal"
+                                  maxLength={20}
+                                  value={c.asking}
+                                  onChange={(e) =>
+                                    card(index, "asking", e.target.value)
+                                  }
+                                  placeholder="e.g. 125.00"
+                                />
+                              </Field>
+                            </div>
+                          </details>
+                        </>
+                      )}
+                    </div>
                   </section>
                 );
               })}
@@ -552,6 +597,7 @@ export default function SellForm() {
                   onClick={() => {
                     const index = draft.cards.length;
                     update("cards", [...draft.cards, emptyCard()]);
+                    setExpandedItem(index);
                     requestAnimationFrame(() =>
                       form.current
                         ?.querySelector(`[name="item-${index}-itemType"]`)
@@ -600,14 +646,16 @@ export default function SellForm() {
                 </div>
                 <p>
                   Show the front and back of your cards, or the packaging and
-                  seals. Keep labels in focus and avoid glare.
+                  seals. Keep labels in focus and avoid glare. You can attach up
+                  to {MAX_SUBMISSION_PHOTOS} photos per request; use clear group
+                  photos for larger collections.
                 </p>
                 <div className={styles.uploadActions}>
                   <button
                     {...props("photos")}
                     className="button secondary"
                     type="button"
-                    disabled={photos.length >= 8}
+                    disabled={photos.length >= MAX_SUBMISSION_PHOTOS}
                     onClick={() => files.current?.click()}
                   >
                     Choose photos
@@ -615,7 +663,7 @@ export default function SellForm() {
                   <button
                     className="button secondary"
                     type="button"
-                    disabled={photos.length >= 8}
+                    disabled={photos.length >= MAX_SUBMISSION_PHOTOS}
                     onClick={() => camera.current?.click()}
                   >
                     Take a photo
@@ -646,8 +694,8 @@ export default function SellForm() {
                 )}
                 <p className={styles.hint} role="status">
                   {preparing
-                    ? "Preparing your photos…"
-                    : `${photos.length} of 8 photos added. JPG, PNG, WebP or iPhone HEIC.`}
+                    ? `Preparing photo ${photoProgress?.current || 1} of ${photoProgress?.total || 1}…`
+                    : `${photos.length} of ${MAX_SUBMISSION_PHOTOS} photos added. JPG, PNG, WebP or iPhone HEIC.`}
                 </p>
                 {!!photos.length && (
                   <PhotoList
@@ -914,6 +962,7 @@ export default function SellForm() {
             setRestored(false);
             setDraft({ ...emptyDraft(), id: crypto.randomUUID() });
             setPhotos([]);
+            setExpandedItem(0);
             move(0);
           }}
         >

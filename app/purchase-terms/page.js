@@ -7,6 +7,22 @@ export const metadata = {
   description:
     "Our purchase terms for graded cards, raw cards and sealed products, including shipping, inspection, payment and returns.",
   alternates: { canonical: "/purchase-terms" },
+  openGraph: {
+    title: "Sell to Us · Purchase Terms | SellMySlabs",
+    description:
+      "Shipping, inspection, payment and return terms for selling your collection to SellMySlabs.",
+    url: "/purchase-terms",
+    type: "website",
+    siteName: "SellMySlabs",
+    images: [
+      {
+        url: "/opengraph-image?v=2",
+        width: 1200,
+        height: 630,
+        alt: "SellMySlabs",
+      },
+    ],
+  },
 };
 export default function Page() {
   return (

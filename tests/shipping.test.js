@@ -68,6 +68,19 @@ test("shipping reads expose only customer-safe fields and do not carry inspectio
   assert.equal(value.receivedAt, new Date(row.received_at).toISOString());
   assert.equal(value.canEdit, false);
   assert.equal(value.canProgress, true);
+  assert.equal(
+    value.inspectionHours,
+    72,
+    "Existing offers keep their original 72-hour inspection window",
+  );
+  assert.equal(
+    publicShipment({ ...row, inspection_hours: "336" }).inspectionHours,
+    336,
+  );
+  assert.equal(
+    publicShipment({ ...row, inspection_hours: "bad" }).inspectionHours,
+    72,
+  );
   assert.ok(!JSON.stringify(value).includes("PRIVATE"));
   assert.equal(value.payload, undefined);
   assert.equal(value.email, undefined);
@@ -126,6 +139,16 @@ test("shipment and shop milestones require accepted current offers, reject stale
     };
     const read = async (offerId = offer) =>
       publicShipment((await db.query(SHIPMENT_SQL, [offerId])).rows[0]);
+    assert.equal((await read()).inspectionHours, 72);
+    await db.query(
+      "UPDATE offer_emails SET purchase_snapshot=$2::jsonb WHERE id=$1",
+      [offer, JSON.stringify({ inspectionHours: 336 })],
+    );
+    assert.equal(
+      (await read()).inspectionHours,
+      336,
+      "Tracking reads the frozen offer's inspection period",
+    );
     assert.equal(
       (await ship(offer, 0)).length,
       0,

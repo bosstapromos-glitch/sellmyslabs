@@ -1,0 +1,22 @@
+.notice {
+  background: var(--wash);
+  border-left: 3px solid var(--blue-ink);
+  padding: 16px 20px;
+  margin-block: 24px;
+  color: var(--ink);
+}
+.notice strong {
+  display: block;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.notice p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 6px 0 0;
+}
+.notice a {
+  color: var(--blue-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
