@@ -153,7 +153,21 @@ test("100 separate private uploads resolve in order, persist together, reject st
     await assert.rejects(stagePhoto(id, jpeg(), deps), /already been sent/);
     const orphan = await stagePhoto(other, jpeg(), deps);
     await sql.query(
-      "UPDATE submission_uploads SET created_at=now()-interval '9 days'",
+      "UPDATE submission_uploads SET created_at=now()-interval '29 days'",
+      [],
+    );
+    assert.equal(
+      (await resolveUploads(id, tokens, sql)).length,
+      100,
+      "Saved drafts remain usable on day 29",
+    );
+    assert.equal(
+      await cleanupUploads(sql, del),
+      0,
+      "Cleanup keeps unexpired draft photos",
+    );
+    await sql.query(
+      "UPDATE submission_uploads SET created_at=now()-interval '32 days'",
       [],
     );
     await assert.rejects(resolveUploads(id, tokens, sql), /expired/);
@@ -233,7 +247,7 @@ test("large batches await each upload, keep only preview+receipt, and recover fr
   assert.ok(
     saved.every(
       (p) =>
-        Object.keys(p).sort().join(",") === "name,preview,token" &&
+        Object.keys(p).sort().join(",") === "expiresAt,name,preview,token" &&
         p.preview === preview,
     ),
   );

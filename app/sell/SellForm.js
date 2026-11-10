@@ -3,6 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { GRADERS, CATEGORIES, ITEM_TYPES, itemDetails } from "../../lib/site";
 import { submissionSchema } from "../../lib/validation";
 import { stepErrors } from "../../lib/sell-validation";
+import {
+  loadDraftPhotos,
+  saveDraftPhoto,
+  removeDraftPhoto,
+  clearDraftPhotos,
+} from "../../lib/draft-photos";
 import { uploadPhoto } from "../../lib/upload-photo";
 import { importCards } from "../../lib/import-cards";
 import {
@@ -42,6 +48,9 @@ export default function SellForm() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [photos, setPhotos] = useState([]);
+  const [savingPhotos, setSavingPhotos] = useState(false);
+  const [photoStorageAvailable, setPhotoStorageAvailable] = useState(true);
+  const [draftNotice, setDraftNotice] = useState("");
   const [preparing, setPreparing] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(null);
   const preparingLock = useRef(false);
@@ -56,26 +65,49 @@ export default function SellForm() {
   const focusInvalid = useRef(false);
   const files = useRef(null);
   const camera = useRef(null);
-  const working = busy || preparing || importing;
+  const working = busy || preparing || importing || savingPhotos;
+  const photosSaved =
+    photoStorageAvailable && photos.every((photo) => photo.persisted);
   useUnsavedChanges(
     !reference &&
-      (photos.length > 0 ||
+      ((!photosSaved && photos.length > 0) ||
         working ||
         (!draftAvailable && hasDraftContent(draft))),
   );
 
   useEffect(() => {
-    try {
-      const saved = restoreDraft(localStorage.getItem(KEY), () =>
-        crypto.randomUUID(),
-      );
+    let active = true;
+    async function restore() {
+      let saved;
+      try {
+        saved = restoreDraft(localStorage.getItem(KEY), () =>
+          crypto.randomUUID(),
+        );
+      } catch {
+        saved = { ...emptyDraft(), id: crypto.randomUUID() };
+        if (active) setDraftAvailable(false);
+      }
+      if (!active) return;
       setDraft(saved);
       setRestored(hasDraftContent(saved));
-    } catch {
-      setDraft((d) => ({ ...d, id: crypto.randomUUID() }));
-      setDraftAvailable(false);
+      try {
+        const result = await loadDraftPhotos(saved.id);
+        if (!active) return;
+        setPhotos(result.photos);
+        if (result.photos.length) setRestored(true);
+        if (result.expired)
+          setDraftNotice(
+            `${result.expired} saved photo${result.expired === 1 ? " is" : "s are"} expired or unavailable. Your item details are still here; please add those photos again.`,
+          );
+      } catch {
+        if (active) setPhotoStorageAvailable(false);
+      }
+      if (active) setReady(true);
     }
-    setReady(true);
+    restore();
+    return () => {
+      active = false;
+    };
   }, []);
   useEffect(() => {
     if (!ready || reference) return;
@@ -171,7 +203,17 @@ export default function SellForm() {
         selected,
         MAX_SUBMISSION_PHOTOS - photos.length,
         (file) => uploadPhoto(file, draft.id),
-        (photo) => setPhotos((current) => [...current, photo]),
+        async (photo) => {
+          let persisted = false;
+          try {
+            await saveDraftPhoto(draft.id, photo);
+            persisted = true;
+            setPhotoStorageAvailable(true);
+          } catch {
+            setPhotoStorageAvailable(false);
+          }
+          setPhotos((current) => [...current, { ...photo, persisted }]);
+        },
         setPhotoProgress,
       );
       if (result.added) clearError("photos");
@@ -231,6 +273,7 @@ export default function SellForm() {
       );
       setReference(result.reference);
       setPhotos([]);
+      await clearDraftPhotos(draft.id).catch(() => {});
       try {
         localStorage.removeItem(KEY);
       } catch {}
@@ -310,8 +353,25 @@ export default function SellForm() {
       )}
       {restored && step === 0 && (
         <p className={styles.draftNotice} role="status">
-          Your draft is restored.
-          {!photos.length && " Add your photos again before continuing."}
+          {photos.length
+            ? `Your draft and ${photos.length} photo${photos.length === 1 ? "" : "s"} are restored.`
+            : "Your draft is restored."}
+        </p>
+      )}
+      {draftNotice && (
+        <p className={styles.draftNotice} role="status">
+          {draftNotice}
+        </p>
+      )}
+      {!ready && (
+        <p className={styles.hint} role="status">
+          Restoring your draft…
+        </p>
+      )}
+      {ready && !photosSaved && (
+        <p className={styles.draftNotice} role="alert">
+          This browser couldn’t save all your photo previews. Keep this page
+          open until you send your request.
         </p>
       )}
       <form ref={form} onSubmit={submit} noValidate aria-busy={working}>
@@ -702,11 +762,25 @@ export default function SellForm() {
                   <PhotoList
                     photos={photos}
                     disabled={working}
-                    onRemove={(index) =>
-                      setPhotos((current) =>
-                        current.filter((_, i) => i !== index),
-                      )
-                    }
+                    onRemove={async (index) => {
+                      if (working || preparingLock.current) return;
+                      preparingLock.current = true;
+                      setSavingPhotos(true);
+                      try {
+                        if (photos[index].persisted)
+                          await removeDraftPhoto(draft.id, photos[index].token);
+                        setPhotos((current) =>
+                          current.filter((_, i) => i !== index),
+                        );
+                      } catch {
+                        setError(
+                          "This saved photo couldn’t be removed. Please try again.",
+                        );
+                      } finally {
+                        preparingLock.current = false;
+                        setSavingPhotos(false);
+                      }
+                    }}
                   />
                 )}
               </section>
@@ -944,15 +1018,15 @@ export default function SellForm() {
       </form>
       <div className={styles.draftStatus}>
         <p className={styles.hint}>
-          {draftAvailable
-            ? "Details are saved in this browser. Keep this page open until you send your request; photos will need to be added again if you leave or reload."
-            : "This browser cannot save your draft. Keep this page open until you send it."}
+          {draftAvailable && photosSaved
+            ? "Your details and uploaded photos are saved on this device. Return in the same browser to continue. Photos are kept for 30 days from upload."
+            : "This browser cannot save your full draft. Keep this page open until you send it."}
         </p>
         <button
           type="button"
           className="plain-button"
-          disabled={working}
-          onClick={() => {
+          disabled={working || !ready}
+          onClick={async () => {
             if (
               (hasDraftContent(draft) || photos.length) &&
               !window.confirm(
@@ -960,6 +1034,23 @@ export default function SellForm() {
               )
             )
               return;
+            setSavingPhotos(true);
+            try {
+              await clearDraftPhotos(draft.id);
+            } catch {
+              if (photos.some((photo) => photo.persisted)) {
+                setError(
+                  "Your saved photos couldn’t be cleared. Please try again.",
+                );
+                setSavingPhotos(false);
+                return;
+              }
+            }
+            try {
+              localStorage.removeItem(KEY);
+            } catch {}
+            setSavingPhotos(false);
+            setDraftNotice("");
             setRestored(false);
             setDraft({ ...emptyDraft(), id: crypto.randomUUID() });
             setPhotos([]);

@@ -48,8 +48,8 @@ export default function Page() {
         <p>
           Photos upload privately as you add them to the form, before you send
           your request. Uploads not included in a submitted request are
-          scheduled for deletion after eight days. Removing a photo or clearing
-          a draft excludes it from your request.
+          scheduled for deletion after 31 days. Removing a photo or clearing a
+          draft excludes it from your request.
         </p>
         <h2>How we use it</h2>
         <p>
@@ -77,9 +77,12 @@ export default function Page() {
         <h2>Information on your device</h2>
         <p>
           The request form saves a draft in this browser so you can continue
-          later. Photos are not saved in that draft. Use “Clear draft” to remove
-          it, particularly on a shared device. Sign-in uses a secure session
-          cookie.
+          later. Small photo previews and private upload references are saved on
+          this device so uploaded photos can be restored for up to 30 days in
+          the same browser. Clearing browser data or using another device will
+          not restore that draft. Use “Clear draft” to remove the saved details
+          and photo previews, particularly on a shared device. Sign-in uses a
+          secure session cookie.
         </p>
         <h2>Your choices</h2>
         <p>
