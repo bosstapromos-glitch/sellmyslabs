@@ -79,3 +79,9 @@ CREATE TABLE IF NOT EXISTS consignment_emails (
  first_attempt_at timestamptz,locked_until timestamptz,lease_id uuid,sent_at timestamptz,provider_id text,error text,
  UNIQUE(offer_id,kind)
 );
+
+ALTER TABLE consignment_offers ADD COLUMN IF NOT EXISTS responded_at timestamptz;
+ALTER TABLE consignment_offers ADD COLUMN IF NOT EXISTS response_name text;
+ALTER TABLE consignment_offers ADD COLUMN IF NOT EXISTS response jsonb CHECK (response IS NULL OR (accepted_at IS NULL AND response->>'action' IN ('decline','counter','changes')));
+ALTER TABLE consignment_emails DROP CONSTRAINT IF EXISTS consignment_emails_kind_check;
+ALTER TABLE consignment_emails ADD CONSTRAINT consignment_emails_kind_check CHECK(kind IN ('offer','acceptance','response'));

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import ConsignmentResponseDetails from "../components/ConsignmentResponseDetails";
 import { requestJSON } from "../../lib/request-json";
 import { consignmentSnapshot } from "../../lib/consignment-offer";
 import { journeyTime } from "../../lib/shipping";
@@ -20,7 +21,11 @@ export default function ConsignmentOffers({
     [preview, setPreview] = useState(null),
     [busy, setBusy] = useState(false);
   const errorRef = useRef(null),
-    previewRef = useRef(null);
+    previewRef = useRef(null),
+    editRef = useRef(null);
+  useEffect(() => {
+    if (mode && !preview) editRef.current?.focus();
+  }, [mode, preview]);
   useEffect(() => {
     onDirty(!!mode);
     return () => onDirty(false);
@@ -49,25 +54,35 @@ export default function ConsignmentOffers({
       active = false;
     };
   }, [submission.id]);
-  function begin(kind) {
+  function begin(kind, source) {
     setError("");
     setMode(kind);
     setPreview(null);
     setMessage("");
+    if (source) setChannel(source.snapshot.channel);
     setLines(
-      submission.cards.map((c, itemIndex) => ({
-        itemIndex,
-        selected: false,
-        quantity: data.remaining[itemIndex],
-        listingType:
-          c.itemType === "Sealed product"
-            ? "sealed"
-            : data.remaining[itemIndex] > 1
-              ? "lot"
-              : "single",
-        salePrice: "",
-        marketplaceFees: "0",
-      })),
+      submission.cards.map((c, itemIndex) => {
+        const quoted = source?.snapshot.lines.find(
+          (l) => l.itemIndex === itemIndex,
+        );
+        const counter = source?.response.lines.find(
+          (l) => l.itemIndex === itemIndex,
+        );
+        return {
+          itemIndex,
+          selected: !!quoted,
+          quantity: quoted?.quantity ?? data.remaining[itemIndex],
+          listingType:
+            quoted?.listingType ??
+            (c.itemType === "Sealed product"
+              ? "sealed"
+              : data.remaining[itemIndex] > 1
+                ? "lot"
+                : "single"),
+          salePrice: counter ? (counter.saleCents / 100).toFixed(2) : "",
+          marketplaceFees: quoted ? (quoted.feeCents / 100).toFixed(2) : "0",
+        };
+      }),
     );
   }
   const currentArrangement = data?.offers.find(
@@ -137,7 +152,11 @@ export default function ConsignmentOffers({
     );
   }
   return (
-    <section className="panel" aria-labelledby="consignment-offers-heading">
+    <section
+      id="consignment-approvals"
+      className="panel"
+      aria-labelledby="consignment-offers-heading"
+    >
       <h2 id="consignment-offers-heading">Consignment approvals</h2>
       <p>
         Send the arrangement first. Once the seller accepts, send buyer offers
@@ -199,7 +218,7 @@ export default function ConsignmentOffers({
       )}
       {mode && !preview && (
         <form onSubmit={review}>
-          <h3>
+          <h3 ref={editRef} tabIndex={-1}>
             {mode === "arrangement" ? "Consignment arrangement" : "Buyer offer"}
           </h3>
           <fieldset className="form-fields" disabled={busy || disabled}>
@@ -392,42 +411,85 @@ export default function ConsignmentOffers({
                   ? "Consignment arrangement"
                   : "Buyer offer"}
               </strong>
-              <p>
-                {o.accepted_at
-                  ? `Accepted by ${o.accepted_name} · ${journeyTime(o.accepted_at)} MT`
-                  : o.withdrawn_at || !o.is_current
-                    ? "Replaced — cannot be accepted"
-                    : "Awaiting seller acceptance"}
-              </p>
+              {!o.response && (
+                <p>
+                  {o.accepted_at
+                    ? `Accepted by ${o.accepted_name} · ${journeyTime(o.accepted_at)} MT`
+                    : o.withdrawn_at || !o.is_current
+                      ? "Replaced — cannot be accepted"
+                      : "Awaiting seller acceptance"}
+                </p>
+              )}
+              {o.response && (
+                <>
+                  <ConsignmentResponseDetails
+                    response={o.response}
+                    name={o.response_name}
+                    at={o.responded_at}
+                  />
+                  {o.response.action === "counter" &&
+                    o.is_current &&
+                    !mode &&
+                    currentArrangement?.accepted_at && (
+                      <>
+                        <button
+                          type="button"
+                          className="button secondary small"
+                          disabled={
+                            busy ||
+                            disabled ||
+                            ["Closed", "Paid"].includes(submission.status)
+                          }
+                          onClick={() => begin("sale", o)}
+                        >
+                          Prepare revised offer
+                        </button>
+                        <p className="hint">
+                          Start with the seller’s proposed prices, confirm the
+                          buyer’s agreement and updated fees, then send a
+                          revised offer for acceptance.
+                        </p>
+                      </>
+                    )}
+                </>
+              )}
               <a
                 className="text-link"
                 href={o.url}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {o.accepted_at
-                  ? "View acceptance record"
-                  : "View seller’s approval page"}{" "}
+                {o.response
+                  ? "View response record"
+                  : o.accepted_at
+                    ? "View acceptance record"
+                    : "View seller’s approval page"}{" "}
                 ↗
               </a>
               {o.emails.map((e) => (
                 <p className="hint" key={e.id}>
-                  {e.kind === "offer" ? "Notification" : "Confirmation"}:{" "}
+                  {e.kind === "offer"
+                    ? "Notification"
+                    : e.kind === "response"
+                      ? "Response confirmation"
+                      : "Confirmation"}
+                  :{" "}
                   {e.status === "sent"
                     ? "sent"
                     : e.status === "sending"
                       ? "sending"
                       : "not confirmed"}
-                  {e.canRetry && (e.kind === "acceptance" || o.is_current) && (
-                    <button
-                      type="button"
-                      className="plain-button"
-                      disabled={busy || disabled || !!mode}
-                      onClick={() => retry(e.id)}
-                    >
-                      Retry email
-                    </button>
-                  )}
+                  {e.canRetry &&
+                    (e.kind !== "offer" || (o.is_current && !o.response)) && (
+                      <button
+                        type="button"
+                        className="plain-button"
+                        disabled={busy || disabled || !!mode}
+                        onClick={() => retry(e.id)}
+                      >
+                        Retry email
+                      </button>
+                    )}
                 </p>
               ))}
             </li>

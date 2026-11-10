@@ -116,3 +116,11 @@
     flex: 1 1 auto;
   }
 }
+
+.responseFields {
+  display: grid;
+  gap: 20px;
+}
+.responseRecord {
+  overflow-wrap: anywhere;
+}

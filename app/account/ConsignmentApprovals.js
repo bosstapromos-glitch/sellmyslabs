@@ -1,3 +1,4 @@
+import { responseLabel } from "../../lib/consignment-response";
 import { journeyTime } from "../../lib/shipping";
 import styles from "./Account.module.css";
 const money = (value) =>
@@ -26,28 +27,36 @@ export default function ConsignmentApprovals({
                 </h3>
                 {a.payout != null && (
                   <p>
-                    Estimated seller payout:{" "}
+                    {a.respondedAt
+                      ? "Original offer’s estimated payout:"
+                      : "Estimated seller payout:"}{" "}
                     <strong>{money(a.payout / 100)}</strong>
                   </p>
                 )}
                 <p>
-                  {a.acceptedAt
-                    ? `Accepted ${journeyTime(a.acceptedAt)} MT${a.isCurrent ? "" : " · Earlier record"}`
-                    : closed
-                      ? "Request closed"
-                      : "Ready for your review"}
+                  {a.respondedAt
+                    ? `${responseLabel(a.response?.action)} · ${journeyTime(a.respondedAt)} MT${a.isCurrent ? "" : " · Earlier record"}`
+                    : a.acceptedAt
+                      ? `Accepted ${journeyTime(a.acceptedAt)} MT${a.isCurrent ? "" : " · Earlier record"}`
+                      : closed
+                        ? "Request closed"
+                        : "Ready for your review"}
                 </p>
                 <a
-                  className={a.acceptedAt ? "text-link" : "button"}
+                  className={
+                    a.acceptedAt || a.respondedAt ? "text-link" : "button"
+                  }
                   href={a.url}
                 >
-                  {a.acceptedAt
-                    ? "View acceptance record"
-                    : closed
-                      ? "View record"
-                      : a.kind === "arrangement"
-                        ? "Review arrangement"
-                        : "Review buyer offer"}
+                  {a.respondedAt
+                    ? "View response record"
+                    : a.acceptedAt
+                      ? "View acceptance record"
+                      : closed
+                        ? "View record"
+                        : a.kind === "arrangement"
+                          ? "Review arrangement"
+                          : "Review buyer offer"}
                 </a>
               </li>
             ))}

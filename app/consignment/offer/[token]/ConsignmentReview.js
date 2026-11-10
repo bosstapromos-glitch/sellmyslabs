@@ -1,5 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import ConsignmentResponseForm from "./ConsignmentResponseForm";
+import ConsignmentResponseDetails from "../../../components/ConsignmentResponseDetails";
+import { responseLabel } from "../../../../lib/consignment-response";
+import styles from "../../../components/ConsignmentOffer.module.css";
 import { requestJSON } from "../../../../lib/request-json";
 import { journeyTime } from "../../../../lib/shipping";
 import ConsignmentOfferDetails from "../../../components/ConsignmentOfferDetails";
@@ -8,7 +12,8 @@ export default function ConsignmentReview({ token, initialOffer }) {
     [name, setName] = useState(""),
     [agree, setAgree] = useState(false),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [responseMode, setResponseMode] = useState("");
   const notice = useRef(null),
     success = useRef(null);
   const s = offer.snapshot,
@@ -16,8 +21,7 @@ export default function ConsignmentReview({ token, initialOffer }) {
   useEffect(() => {
     if (error) notice.current?.focus();
   }, [error]);
-  async function accept(e) {
-    e.preventDefault();
+  async function send(payload) {
     if (busy) return;
     setBusy(true);
     setError("");
@@ -25,9 +29,10 @@ export default function ConsignmentReview({ token, initialOffer }) {
       const result = await requestJSON(`/api/consignment/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, agree, termsVersion: s.terms.version }),
+        body: JSON.stringify({ ...payload, termsVersion: s.terms.version }),
       });
       setOffer(result.offer);
+      setResponseMode("");
       requestAnimationFrame(() => success.current?.focus());
     } catch (e) {
       setError(e.message);
@@ -47,14 +52,40 @@ export default function ConsignmentReview({ token, initialOffer }) {
       </a>
       <span className="eyebrow">CONSIGNMENT · {s.reference}</span>
       <h1>
-        {offer.acceptedAt
-          ? `${s.kind === "arrangement" ? "Arrangement" : "Buyer offer"} accepted.`
-          : `Review your ${label}.`}
+        {offer.response
+          ? `${responseLabel(offer.response.action)}.`
+          : offer.acceptedAt
+            ? `${s.kind === "arrangement" ? "Arrangement" : "Buyer offer"} accepted.`
+            : `Review your ${label}.`}
       </h1>
       <p>
         For {s.sellerName} · from {s.shop.name}
       </p>
-      {offer.acceptedAt ? (
+      {offer.response ? (
+        <section ref={success} tabIndex={-1} role="status">
+          <ConsignmentResponseDetails
+            response={offer.response}
+            name={offer.responseName}
+            at={offer.respondedAt}
+          />
+          <p>
+            {offer.response.action === "decline"
+              ? "Your decline is recorded. Any new offer will appear in your account."
+              : "The shop will review your request. Any revised offer or arrangement will appear here for your approval."}
+          </p>
+          <p className="hint">
+            {offer.responseReceiptSent
+              ? "A copy of your response has been sent to you and the shop."
+              : "Your response is saved. Its confirmation email is pending; you do not need to submit again."}
+          </p>
+          {!offer.isCurrent && (
+            <p>
+              This is an earlier response. Open your account for the latest
+              version.
+            </p>
+          )}
+        </section>
+      ) : offer.acceptedAt ? (
         <section
           className="purchase-confirmation"
           role="status"
@@ -90,13 +121,20 @@ export default function ConsignmentReview({ token, initialOffer }) {
         </div>
       ) : (
         <p>
-          Review the items and details below. Contact the shop before accepting
-          if anything needs to change.
+          Review the items and details below, then accept, decline, or send a
+          response to the shop.
         </p>
       )}
+      {offer.response && <h2>Original {label}</h2>}
       <ConsignmentOfferDetails snapshot={s} />
-      {offer.canAccept ? (
-        <form className="purchase-acceptance" onSubmit={accept}>
+      {offer.canAccept && !responseMode ? (
+        <form
+          className="purchase-acceptance"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send({ name, agree });
+          }}
+        >
           <h2>Accept this {label}</h2>
           <fieldset className="form-fields" disabled={busy}>
             <label className="field">
@@ -134,6 +172,46 @@ export default function ConsignmentReview({ token, initialOffer }) {
             <p>{s.statement}</p>
           </section>
         )
+      )}
+      {offer.canAccept && !responseMode && (
+        <div className={styles.controls}>
+          <button
+            className="button secondary"
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setError("");
+              setResponseMode(s.kind === "sale" ? "counter" : "changes");
+            }}
+          >
+            {s.kind === "sale" ? "Counter offer" : "Request changes"}
+          </button>
+          <button
+            className="plain-button"
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setError("");
+              setResponseMode("decline");
+            }}
+          >
+            Decline
+          </button>
+        </div>
+      )}
+      {offer.canAccept && responseMode && (
+        <ConsignmentResponseForm
+          key={responseMode}
+          mode={responseMode}
+          snapshot={s}
+          initialName={name}
+          busy={busy}
+          onSubmit={send}
+          onCancel={() => {
+            setResponseMode("");
+            setError("");
+          }}
+        />
       )}
       {error && (
         <p className="error" role="alert" ref={notice} tabIndex={-1}>
