@@ -16,8 +16,8 @@ export async function GET(request) {
     const rawIndex = params.get("index");
     if (
       !validRequestId(id) ||
-      !/^\d$/.test(rawIndex || "") ||
-      Number(rawIndex) > 7
+      !/^\d{1,2}$/.test(rawIndex || "") ||
+      Number(rawIndex) >= 100
     )
       return new Response("Not found", { status: 404 });
     const [row] = await db().query(CUSTOMER_PHOTOS_SQL, [identity.id, id]);

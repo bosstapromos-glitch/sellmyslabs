@@ -1,0 +1,26 @@
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-block: 16px;
+}
+.pager span {
+  color: var(--muted);
+  font-size: 14px;
+}
+.pager button {
+  min-height: 44px;
+}
+.pager button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+@media (max-width: 380px) {
+  .pager span {
+    order: -1;
+    width: 100%;
+    text-align: center;
+  }
+}

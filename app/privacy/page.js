@@ -45,6 +45,12 @@ export default function Page() {
           If you share tracking, we retain the carrier, tracking number and
           purchase progress confirmed by you and the shop.
         </p>
+        <p>
+          Photos upload privately as you add them to the form, before you send
+          your request. Uploads not included in a submitted request are
+          scheduled for deletion after eight days. Removing a photo or clearing
+          a draft excludes it from your request.
+        </p>
         <h2>How we use it</h2>
         <p>
           We use your information to evaluate your items, contact you about your

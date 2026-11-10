@@ -45,3 +45,10 @@ CREATE TABLE IF NOT EXISTS purchase_shipments (
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS customer_user_id text;
 CREATE INDEX IF NOT EXISTS submissions_customer ON submissions(customer_user_id,created_at DESC);
 CREATE INDEX IF NOT EXISTS submissions_unclaimed_email ON submissions(lower(btrim(email))) WHERE customer_user_id IS NULL;
+
+CREATE TABLE IF NOT EXISTS submission_uploads (
+ token_hash text PRIMARY KEY, submission_id uuid NOT NULL,
+ photo jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS submission_uploads_created ON submission_uploads(created_at);
+CREATE INDEX IF NOT EXISTS submission_uploads_request ON submission_uploads(submission_id);

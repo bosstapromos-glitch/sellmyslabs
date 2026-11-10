@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./SellForm.module.css";
+import PhotoPager, { PHOTO_PAGE_SIZE } from "../components/PhotoPager";
 import { photoPreview } from "../../lib/prepare-photo";
 
 export function Field({
@@ -35,7 +36,7 @@ export function Field({
 function Photo({ file, index, onRemove, disabled }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
-    const next = URL.createObjectURL(photoPreview(file));
+    const next = URL.createObjectURL(file.preview || photoPreview(file));
     setUrl(next);
     return () => URL.revokeObjectURL(next);
   }, [file]);
@@ -70,17 +71,30 @@ function Photo({ file, index, onRemove, disabled }) {
 }
 
 export function PhotoList({ photos, onRemove, disabled }) {
+  const [page, setPage] = useState(0);
+  const current = Math.min(
+    page,
+    Math.max(0, Math.ceil(photos.length / PHOTO_PAGE_SIZE) - 1),
+  );
   return (
-    <ul className={styles.photoList} aria-label="Attached photos">
-      {photos.map((file, index) => (
-        <Photo
-          key={`${file.name}-${file.lastModified}-${index}`}
-          file={file}
-          index={index}
-          onRemove={onRemove}
-          disabled={disabled}
-        />
-      ))}
-    </ul>
+    <>
+      <ul className={styles.photoList} aria-label="Attached photos">
+        {photos
+          .slice(current * PHOTO_PAGE_SIZE, (current + 1) * PHOTO_PAGE_SIZE)
+          .map((file, offset) => {
+            const index = current * PHOTO_PAGE_SIZE + offset;
+            return (
+              <Photo
+                key={file.token || `${file.name}-${file.lastModified}-${index}`}
+                file={file}
+                index={index}
+                onRemove={onRemove}
+                disabled={disabled}
+              />
+            );
+          })}
+      </ul>
+      <PhotoPager page={current} total={photos.length} onChange={setPage} />
+    </>
   );
 }

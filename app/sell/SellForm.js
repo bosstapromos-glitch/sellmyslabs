@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { GRADERS, CATEGORIES, ITEM_TYPES, itemDetails } from "../../lib/site";
 import { submissionSchema } from "../../lib/validation";
 import { stepErrors } from "../../lib/sell-validation";
-import { preparePhoto } from "../../lib/prepare-photo";
+import { uploadPhoto } from "../../lib/upload-photo";
 import { importCards } from "../../lib/import-cards";
 import {
   DRAFT_KEY as KEY,
@@ -170,7 +170,7 @@ export default function SellForm() {
       const result = await prepareSelection(
         selected,
         MAX_SUBMISSION_PHOTOS - photos.length,
-        preparePhoto,
+        (file) => uploadPhoto(file, draft.id),
         (photo) => setPhotos((current) => [...current, photo]),
         setPhotoProgress,
       );
@@ -223,7 +223,7 @@ export default function SellForm() {
     try {
       const data = new FormData();
       data.set("data", JSON.stringify(parsed.data));
-      photos.forEach((photo) => data.append("photos", photo));
+      data.set("uploads", JSON.stringify(photos.map((photo) => photo.token)));
       const result = await requestJSON(
         "/api/submissions",
         { method: "POST", body: data },
@@ -647,8 +647,9 @@ export default function SellForm() {
                 <p>
                   Show the front and back of your cards, or the packaging and
                   seals. Keep labels in focus and avoid glare. You can attach up
-                  to {MAX_SUBMISSION_PHOTOS} photos per request; use clear group
-                  photos for larger collections.
+                  to {MAX_SUBMISSION_PHOTOS} photos per request, so each slab
+                  can have its own photo. Photos upload privately as you add
+                  them.
                 </p>
                 <div className={styles.uploadActions}>
                   <button
@@ -694,8 +695,8 @@ export default function SellForm() {
                 )}
                 <p className={styles.hint} role="status">
                   {preparing
-                    ? `Preparing photo ${photoProgress?.current || 1} of ${photoProgress?.total || 1}…`
-                    : `${photos.length} of ${MAX_SUBMISSION_PHOTOS} photos added. JPG, PNG, WebP or iPhone HEIC.`}
+                    ? `Uploading photo ${photoProgress?.current || 1} of ${photoProgress?.total || 1}…`
+                    : `${photos.length} of ${MAX_SUBMISSION_PHOTOS} photos uploaded. JPG, PNG, WebP or iPhone HEIC.`}
                 </p>
                 {!!photos.length && (
                   <PhotoList
@@ -944,7 +945,7 @@ export default function SellForm() {
       <div className={styles.draftStatus}>
         <p className={styles.hint}>
           {draftAvailable
-            ? "Details are saved in this browser. Photos stay attached until you leave or reload."
+            ? "Details are saved in this browser. Keep this page open until you send your request; photos will need to be added again if you leave or reload."
             : "This browser cannot save your draft. Keep this page open until you send it."}
         </p>
         <button

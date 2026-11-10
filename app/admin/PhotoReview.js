@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
+import PhotoPager, { PHOTO_PAGE_SIZE } from "../components/PhotoPager";
+
 const extension = (type) =>
   type === "image/png" ? "png" : type === "image/webp" ? "webp" : "jpg";
 
@@ -149,6 +151,11 @@ function PhotoViewer({
 
 export default function PhotoReview({ id, photos }) {
   const [selected, setSelected] = useState(null);
+  const [page, setPage] = useState(0);
+  const current = Math.min(
+    page,
+    Math.max(0, Math.ceil(photos.length / PHOTO_PAGE_SIZE) - 1),
+  );
   const source = (index) => `/api/admin/photo?id=${id}&index=${index}`;
   return (
     <section
@@ -168,34 +175,40 @@ export default function PhotoReview({ id, photos }) {
         </p>
       )}
       <div className="owner-photo-grid">
-        {photos.map((photo, i) => (
-          <article key={photo.index} className="owner-photo-tile">
-            <button
-              type="button"
-              className="owner-photo-preview"
-              onClick={() => setSelected(photo.index)}
-              aria-label={`Enlarge photo ${i + 1}`}
-            >
-              <PrivatePhoto
-                src={source(photo.index)}
-                alt={`Seller photo ${i + 1}`}
-                lazy
-              />
-              <span>Enlarge photo</span>
-            </button>
-            <div className="owner-photo-caption">
-              <strong>Photo {i + 1}</strong>
-              <a
-                className="text-link"
-                href={source(photo.index)}
-                download={`submission-photo-${i + 1}.${extension(photo.type)}`}
-              >
-                Download
-              </a>
-            </div>
-          </article>
-        ))}
+        {photos
+          .slice(current * PHOTO_PAGE_SIZE, (current + 1) * PHOTO_PAGE_SIZE)
+          .map((photo, offset) => {
+            const i = current * PHOTO_PAGE_SIZE + offset;
+            return (
+              <article key={photo.index} className="owner-photo-tile">
+                <button
+                  type="button"
+                  className="owner-photo-preview"
+                  onClick={() => setSelected(photo.index)}
+                  aria-label={`Enlarge photo ${i + 1}`}
+                >
+                  <PrivatePhoto
+                    src={source(photo.index)}
+                    alt={`Seller photo ${i + 1}`}
+                    lazy
+                  />
+                  <span>Enlarge photo</span>
+                </button>
+                <div className="owner-photo-caption">
+                  <strong>Photo {i + 1}</strong>
+                  <a
+                    className="text-link"
+                    href={source(photo.index)}
+                    download={`submission-photo-${i + 1}.${extension(photo.type)}`}
+                  >
+                    Download
+                  </a>
+                </div>
+              </article>
+            );
+          })}
       </div>
+      <PhotoPager page={current} total={photos.length} onChange={setPage} />
       {selected !== null && (
         <PhotoViewer
           src={source(selected)}

@@ -47,7 +47,8 @@ test("each step reports actionable errors and allows genuinely optional fields t
   assert.deepEqual(stepErrors(draft, 1, 1), {});
   assert.deepEqual(stepErrors(draft, 1, 2), {});
   assert.ok(stepErrors(draft, 0, 0).photos);
-  assert.ok(stepErrors(draft, 9, 0).photos);
+  assert.equal(stepErrors(draft, 100, 0).photos, undefined);
+  assert.ok(stepErrors(draft, 101, 0).photos);
   const contact = stepErrors(
     { ...draft, name: "  ", email: "not-an-email" },
     1,

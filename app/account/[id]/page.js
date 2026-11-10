@@ -8,7 +8,7 @@ import { journeyTime } from "../../../lib/shipping";
 import { BUSINESS } from "../../../lib/site";
 import ShippingPanel from "../../offer/[token]/ShippingPanel";
 import RefreshRequest from "../RefreshRequest";
-import AccountPhoto from "../AccountPhoto";
+import AccountPhotos from "../AccountPhotos";
 import styles from "../Account.module.css";
 export const dynamic = "force-dynamic";
 const money = (value) =>
@@ -108,11 +108,7 @@ export default async function Page({ params }) {
       {request.photoCount > 0 && (
         <section className={styles.section} aria-labelledby="your-photos">
           <h2 id="your-photos">Your photos</h2>
-          <div className={styles.photos}>
-            {Array.from({ length: request.photoCount }, (_, index) => (
-              <AccountPhoto key={index} id={id} index={index} />
-            ))}
-          </div>
+          <AccountPhotos id={id} count={request.photoCount} />
         </section>
       )}
       {request.notes && (
