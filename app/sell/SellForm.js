@@ -25,6 +25,11 @@ import styles from "./SellForm.module.css";
 import useAccountDraft from "./useAccountDraft";
 import AccountDraftStatus from "./AccountDraftStatus";
 import ResumeDraft from "../components/ResumeDraft";
+import ConsignmentRates from "../components/ConsignmentRates";
+import {
+  CONSIGNMENT_APPROVAL,
+  CONSIGNMENT_PAYMENT,
+} from "../../lib/consignment";
 import InspectionNotice from "../components/InspectionNotice";
 import {
   MAX_SUBMISSION_PHOTOS,
@@ -45,6 +50,7 @@ const descriptions = [
 
 export default function SellForm() {
   const [draft, setDraft] = useState(emptyDraft);
+  const consignment = draft.saleMethod === "consignment";
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState({});
@@ -132,6 +138,12 @@ export default function SellForm() {
         if (active) setDraftAvailable(false);
       }
       if (!active) return;
+      if (
+        !hasDraftContent(saved) &&
+        new URLSearchParams(window.location.search).get("method") ===
+          "consignment"
+      )
+        saved.saleMethod = "consignment";
       setDraft(saved);
       setRestored(hasDraftContent(saved));
       try {
@@ -357,24 +369,27 @@ export default function SellForm() {
             Your request is with our team.
           </h1>
         </header>
-        <InspectionNotice />
+        <InspectionNotice consignment={consignment} />
         <section className={styles.success} aria-live="polite">
           <p>
-            We’ll reply to <strong>{draft.email}</strong> with an offer or an
-            update.
+            We’ll reply to <strong>{draft.email}</strong>{" "}
+            {consignment
+              ? "to review your consignment request and confirm the next steps."
+              : "with an offer or an update."}
           </p>
           <p>
             Your reference: <strong>{reference}</strong>
           </p>
           <p>
-            Please wait for an accepted offer and confirmed shipping details
-            before sending any items.
+            {consignment
+              ? "Please wait for confirmed consignment and delivery arrangements before sending any items."
+              : "Please wait for an accepted offer and confirmed shipping details before sending any items."}
           </p>
           <h2>Keep track of your request.</h2>
           <p>
-            Create an account or sign in with the same email to see your
-            requests, offers and shipping progress. It’s optional—we’ll still
-            email you.
+            {consignment
+              ? "Sign in with the same email to follow your consignment request’s status. It’s optional—we’ll still email you."
+              : "Create an account or sign in with the same email to see your requests, offers and shipping progress. It’s optional—we’ll still email you."}
           </p>
           <a className="button" href="/account">
             Track your request
@@ -389,11 +404,19 @@ export default function SellForm() {
   return (
     <div className={styles.root}>
       <header className={styles.intro}>
-        <span className="eyebrow">REQUEST AN OFFER</span>
+        <span className="eyebrow">
+          {consignment ? "REQUEST CONSIGNMENT" : "REQUEST AN OFFER"}
+        </span>
         <h1 ref={heading} tabIndex={-1}>
-          {titles[step]}
+          {consignment && step === 1
+            ? "Where should we send updates?"
+            : titles[step]}
         </h1>
-        <p>{descriptions[step]}</p>
+        <p>
+          {consignment && step === 1
+            ? "We’ll email you about your consignment request."
+            : descriptions[step]}
+        </p>
       </header>
       {ready && account.resumeDraft && (
         <ResumeDraft
@@ -401,7 +424,7 @@ export default function SellForm() {
           otherCount={account.savedDraftCount - 1}
         />
       )}
-      <InspectionNotice />
+      <InspectionNotice consignment={consignment} />
       {ready && !account.resumeDraft && (
         <AccountDraftStatus account={account} disabled={working} />
       )}
@@ -449,6 +472,55 @@ export default function SellForm() {
         <fieldset className="form-fields" disabled={working || !ready}>
           {step === 0 && (
             <>
+              <fieldset className={styles.saleMethod}>
+                <legend>How would you like to sell?</legend>
+                <div className={styles.saleChoices}>
+                  <label>
+                    <input
+                      type="radio"
+                      name="saleMethod"
+                      value="direct"
+                      checked={!consignment}
+                      onChange={() => update("saleMethod", "direct")}
+                    />
+                    <span>
+                      <strong>Sell directly</strong>
+                      <small>Get a purchase offer from our shop.</small>
+                    </span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="saleMethod"
+                      value="consignment"
+                      checked={consignment}
+                      onChange={() => update("saleMethod", "consignment")}
+                    />
+                    <span>
+                      <strong>Consign with us</strong>
+                      <small>We sell for you in-store and on eBay.</small>
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
+              {consignment && (
+                <section
+                  className={styles.consignmentInfo}
+                  aria-label="About consignment"
+                >
+                  <p>{CONSIGNMENT_APPROVAL}</p>
+                  <p>{CONSIGNMENT_PAYMENT}</p>
+                  <details>
+                    <summary>View payout rates and fees</summary>
+                    <ConsignmentRates />
+                  </details>
+                  <p className={styles.hint}>
+                    Your target is the sale price before fees and our share. A
+                    higher return or a sale isn’t guaranteed. We confirm
+                    arrangements before you send items.
+                  </p>
+                </section>
+              )}
               {draft.cards.map((c, index) => {
                 const key = (field) => `item-${index}-${field}`;
                 const graded = c.itemType === "Graded card";
@@ -670,7 +742,10 @@ export default function SellForm() {
                               </Field>
                             )}
                           </div>
-                          <details className={styles.optionalDetails}>
+                          <details
+                            className={styles.optionalDetails}
+                            open={consignment || undefined}
+                          >
                             <summary>
                               {graded
                                 ? "Certification & item price"
@@ -697,7 +772,11 @@ export default function SellForm() {
                               )}
                               <Field
                                 id={key("asking")}
-                                label="Asking price per item (USD)"
+                                label={
+                                  consignment
+                                    ? "Target sale price per item (USD)"
+                                    : "Asking price per item (USD)"
+                                }
                                 optional
                                 error={errors[key("asking")]}
                               >
@@ -899,7 +978,11 @@ export default function SellForm() {
               <Field
                 id="email"
                 label="Email address"
-                hint="Your offer will go to this address."
+                hint={
+                  consignment
+                    ? "Consignment updates and buyer offers will go to this address."
+                    : "Your offer will go to this address."
+                }
                 error={errors.email}
               >
                 <input
@@ -958,6 +1041,11 @@ export default function SellForm() {
                     Edit items
                   </button>
                 </div>
+                <p className={styles.draftNotice}>
+                  {consignment
+                    ? "Consignment · in-store and eBay"
+                    : "Direct purchase request"}
+                </p>
                 <ul className={styles.reviewItems}>
                   {draft.cards.map((c, index) => (
                     <li key={index}>
@@ -1033,9 +1121,9 @@ export default function SellForm() {
                 </p>
               )}
               <p className={styles.hint}>
-                This is a request for an offer, not an agreement to sell. Please
-                wait for an accepted offer and confirmed shipping details before
-                sending items.
+                {consignment
+                  ? "This is a consignment request, not permission to list or sell your items. We’ll confirm arrangements and ask for your approval of buyer offers before proceeding."
+                  : "This is a request for an offer, not an agreement to sell. Please wait for an accepted offer and confirmed shipping details before sending items."}
               </p>
             </>
           )}

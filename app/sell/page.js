@@ -3,14 +3,14 @@ import SellForm from "./SellForm";
 export const metadata = {
   title: "Sell Cards & Sealed Products",
   description:
-    "Send graded cards, raw cards or sealed products with photos and an optional asking price. Get a personal offer from Lifestyle Cards & Collectibles.",
+    "Send graded cards, raw cards or sealed products with photos and an optional asking price. Choose a direct offer or consignment with Lifestyle Cards & Collectibles.",
   alternates: {
     canonical: "/sell",
   },
   openGraph: {
     title: "Sell Cards & Sealed Products | SellMySlabs",
     description:
-      "Send graded cards, raw cards or sealed products with photos and an optional asking price. Get a personal offer from Lifestyle Cards & Collectibles.",
+      "Send graded cards, raw cards or sealed products with photos and an optional asking price. Choose a direct offer or consignment with Lifestyle Cards & Collectibles.",
     url: "/sell",
     type: "website",
     siteName: "SellMySlabs",

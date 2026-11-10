@@ -4,6 +4,8 @@ import { requestJSON } from "../../lib/request-json";
 import { hasOwnerEdits, hasSellerContextEdits } from "../../lib/owner-edits";
 import useUnsavedChanges from "../components/useUnsavedChanges";
 import OfferEmailStatus from "./OfferEmailStatus";
+import { CONSIGNMENT_STATUSES, saleMethodLabel } from "../../lib/sale-method";
+import { CONSIGNMENT_PAYMENT } from "../../lib/consignment";
 import OfferContext from "./OfferContext";
 import OfferAcceptance from "./OfferAcceptance";
 import ShipmentProgress from "./ShipmentProgress";
@@ -202,7 +204,9 @@ export default function Workspace({ authenticated }) {
           ? d.offer_email?.status === "sent"
             ? "Offer saved and emailed to the seller."
             : "Offer saved. The email has not been confirmed; check its status below."
-          : "Changes saved. No new offer email was sent.",
+          : selected.sale_method === "consignment"
+            ? "Changes saved. The customer can see the updated status in their account."
+            : "Changes saved. No new offer email was sent.",
       );
       await refresh();
     } catch (e) {
@@ -277,6 +281,7 @@ export default function Workspace({ authenticated }) {
       setCheckingDelivery(false);
     }
   }
+  const consignment = selected?.sale_method === "consignment";
   const normalizedOffer = normalizeOfferPrice(String(offer));
   const changedOffer =
     selected &&
@@ -330,7 +335,7 @@ export default function Workspace({ authenticated }) {
       </div>
     );
   const filtered = list.filter((s) =>
-    `${s.seller_name} ${s.id} ${s.status}`
+    `${s.seller_name} ${s.id} ${s.status} ${saleMethodLabel(s.sale_method)}`
       .toLowerCase()
       .includes(filter.trim().toLowerCase()),
   );
@@ -420,7 +425,10 @@ export default function Workspace({ authenticated }) {
                 {new Date(s.created_at).toLocaleDateString()} · {s.card_count}{" "}
                 {s.card_count === 1 ? "item entry" : "item entries"}
               </small>
-              <span className="badge">{s.status}</span>
+              <span className="badge">
+                {s.sale_method === "consignment" ? "Consignment · " : ""}
+                {s.status}
+              </span>
               {!s.notified_at && <small>Notification pending</small>}
             </button>
           ))}
@@ -475,12 +483,13 @@ export default function Workspace({ authenticated }) {
             <>
               <div className="panel">
                 <span className="eyebrow">
-                  REQUEST {selected.id.slice(0, 8).toUpperCase()}
+                  {saleMethodLabel(selected.sale_method)} ·{" "}
+                  {selected.id.slice(0, 8).toUpperCase()}
                 </span>
                 <div className="request-heading">
                   <h2>{selected.seller_name}</h2>
                   <a className="text-link" href="#offer-editor">
-                    Go to offer ↓
+                    {consignment ? "Manage consignment ↓" : "Go to offer ↓"}
                   </a>
                 </div>
                 <p>
@@ -522,7 +531,11 @@ export default function Workspace({ authenticated }) {
                       </span>
                     </div>
                     <span>
-                      {c.asking ? `$${c.asking} each` : "Open to an offer"}
+                      {c.asking
+                        ? `$${c.asking} each${consignment ? " target" : ""}`
+                        : consignment
+                          ? "Target not specified"
+                          : "Open to an offer"}
                     </span>
                   </div>
                 ))}
@@ -539,9 +552,35 @@ export default function Workspace({ authenticated }) {
                 onSubmit={save}
               >
                 <div className="card-heading">
-                  <h2>Your offer</h2>
+                  <h2>{consignment ? "Manage consignment" : "Your offer"}</h2>
                   {unsaved && <span className="hint">Unsaved changes</span>}
                 </div>
+                {consignment && (
+                  <div className="notice">
+                    <p>
+                      Review the seller’s asking prices before listing in-store
+                      or on eBay. Confirm listing and delivery arrangements with
+                      the seller. Send buyer offers for approval before
+                      accepting them.
+                    </p>
+                    <p>{CONSIGNMENT_PAYMENT}</p>
+                    <a
+                      className="text-link"
+                      href={`mailto:${selected.email}?subject=${encodeURIComponent("Your SellMySlabs consignment · " + selected.id.slice(0, 8).toUpperCase())}`}
+                    >
+                      Email seller about consignment
+                    </a>{" "}
+                    ·{" "}
+                    <a
+                      className="text-link"
+                      href="/consignment"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Rates and fees
+                    </a>
+                  </div>
+                )}
                 <fieldset disabled={busy} className="form-fields">
                   <div className="field-grid">
                     <label className="field">
@@ -553,55 +592,63 @@ export default function Workspace({ authenticated }) {
                           setSaved(false);
                         }}
                       >
-                        {STATUSES.map((v) => (
-                          <option key={v}>{v}</option>
-                        ))}
+                        {(consignment ? CONSIGNMENT_STATUSES : STATUSES).map(
+                          (v) => (
+                            <option key={v}>{v}</option>
+                          ),
+                        )}
                       </select>
                     </label>
-                    <label className="field">
-                      Total offer (USD)
-                      <input
-                        inputMode="decimal"
-                        aria-invalid={error === OFFER_PRICE_ERROR || undefined}
-                        aria-describedby={
-                          error === OFFER_PRICE_ERROR
-                            ? "offer-error offer-help"
-                            : "offer-help"
-                        }
-                        value={offer}
-                        maxLength={20}
-                        onChange={(e) => {
-                          setOffer(e.target.value);
-                          if (error === OFFER_PRICE_ERROR) setError("");
-                          setSaved(false);
-                        }}
-                        placeholder="Optional"
-                      />
-                    </label>
-                    <div className="full">
-                      <OfferContext
-                        key={selected.id}
-                        id={selected.id}
-                        message={sellerMessage}
-                        onMessage={(value) => {
-                          setSellerMessage(value);
-                          setSaved(false);
-                        }}
-                        photos={offerPhotos}
-                        onPhotos={(value) => {
-                          setOfferPhotos(value);
-                          setSaved(false);
-                        }}
-                        files={newOfferPhotos}
-                        onFiles={(value) => {
-                          setNewOfferPhotos(value);
-                          setSaved(false);
-                        }}
-                        preparing={preparingPhotos}
-                        onPreparing={setPreparingPhotos}
-                        onError={setError}
-                      />
-                    </div>
+                    {!consignment && (
+                      <label className="field">
+                        Total offer (USD)
+                        <input
+                          inputMode="decimal"
+                          aria-invalid={
+                            error === OFFER_PRICE_ERROR || undefined
+                          }
+                          aria-describedby={
+                            error === OFFER_PRICE_ERROR
+                              ? "offer-error offer-help"
+                              : "offer-help"
+                          }
+                          value={offer}
+                          maxLength={20}
+                          onChange={(e) => {
+                            setOffer(e.target.value);
+                            if (error === OFFER_PRICE_ERROR) setError("");
+                            setSaved(false);
+                          }}
+                          placeholder="Optional"
+                        />
+                      </label>
+                    )}
+                    {!consignment && (
+                      <div className="full">
+                        <OfferContext
+                          key={selected.id}
+                          id={selected.id}
+                          message={sellerMessage}
+                          onMessage={(value) => {
+                            setSellerMessage(value);
+                            setSaved(false);
+                          }}
+                          photos={offerPhotos}
+                          onPhotos={(value) => {
+                            setOfferPhotos(value);
+                            setSaved(false);
+                          }}
+                          files={newOfferPhotos}
+                          onFiles={(value) => {
+                            setNewOfferPhotos(value);
+                            setSaved(false);
+                          }}
+                          preparing={preparingPhotos}
+                          onPreparing={setPreparingPhotos}
+                          onError={setError}
+                        />
+                      </div>
+                    )}
                     <label className="field full">
                       Private notes
                       <textarea
@@ -616,10 +663,13 @@ export default function Workspace({ authenticated }) {
                   </div>
                 </fieldset>
                 <p className="hint" id="offer-help">
-                  {normalizedOffer && normalizedOffer !== null
-                    ? `Changes to the price, seller message or sales photos email the offer to ${selected.email}, with a private copy to you.`
-                    : "Add a price when you’re ready to email the offer. Messages and sales photos can be saved as a draft."}{" "}
-                  Private notes and status changes stay private.
+                  {consignment
+                    ? "Status updates appear in the customer’s account. Private notes stay private. Use Email seller to discuss listing details and buyer offers."
+                    : normalizedOffer && normalizedOffer !== null
+                      ? `Changes to the price, seller message or sales photos email the offer to ${selected.email}, with a private copy to you.`
+                      : "Add a price when you’re ready to email the offer. Messages and sales photos can be saved as a draft."}{" "}
+                  {!consignment &&
+                    "Private notes stay private. Status updates appear in the customer’s account."}
                 </p>
                 <button className="button" disabled={busy || !unsaved}>
                   {busy
@@ -655,31 +705,35 @@ export default function Workspace({ authenticated }) {
                     {saved}
                   </p>
                 )}
-                <OfferEmailStatus
-                  email={selected.offer_email}
-                  busy={busy}
-                  checking={checkingDelivery}
-                  canRetry={
-                    normalizedOffer !== null &&
-                    normalizedOffer !== "" &&
-                    !changedOffer
-                  }
-                  onCheck={checkDelivery}
-                  onRetry={retryEmail}
-                />
-                <OfferAcceptance
-                  email={selected.offer_email}
-                  history={selected.acceptances}
-                  busy={busy}
-                  unsaved={unsaved}
-                  activeOffer={
-                    Boolean(normalizedOffer) &&
-                    !["Closed", "Paid"].includes(status)
-                  }
-                  onSend={(event) => save(event, true)}
-                  onRefresh={() => open(selected.id, { reload: true })}
-                  onRetryReceipt={retryReceipt}
-                />
+                {!consignment && (
+                  <>
+                    <OfferEmailStatus
+                      email={selected.offer_email}
+                      busy={busy}
+                      checking={checkingDelivery}
+                      canRetry={
+                        normalizedOffer !== null &&
+                        normalizedOffer !== "" &&
+                        !changedOffer
+                      }
+                      onCheck={checkDelivery}
+                      onRetry={retryEmail}
+                    />
+                    <OfferAcceptance
+                      email={selected.offer_email}
+                      history={selected.acceptances}
+                      busy={busy}
+                      unsaved={unsaved}
+                      activeOffer={
+                        Boolean(normalizedOffer) &&
+                        !["Closed", "Paid"].includes(status)
+                      }
+                      onSend={(event) => save(event, true)}
+                      onRefresh={() => open(selected.id, { reload: true })}
+                      onRetryReceipt={retryReceipt}
+                    />
+                  </>
+                )}
               </form>
               {selected.offer_email?.acceptance?.accepted_at && (
                 <ShipmentProgress

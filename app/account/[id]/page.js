@@ -1,3 +1,5 @@
+import { saleMethodLabel } from "../../../lib/sale-method";
+import { CONSIGNMENT_PAYMENT } from "../../../lib/consignment";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -28,7 +30,9 @@ export default async function Page({ params }) {
       </Link>
       <div className={styles.heading}>
         <div>
-          <span className={styles.reference}>REQUEST {request.reference}</span>
+          <span className={styles.reference}>
+            {saleMethodLabel(request.saleMethod)} · {request.reference}
+          </span>
           <h1>{request.stage}</h1>
           <p className={styles.muted}>
             Submitted {journeyTime(request.createdAt)} MT
@@ -71,11 +75,38 @@ export default async function Page({ params }) {
             ? "This request is closed. Contact the shop if you need help."
             : request.stage === "Paid"
               ? "The shop has marked this request Paid."
-              : "Your request is saved. We’ll email you when your offer is ready."}
+              : request.saleMethod === "consignment"
+                ? {
+                    "Payment sent":
+                      "We’ve marked your payout as sent. Transfer processing times depend on the payment method.",
+                    "Sold · awaiting payout":
+                      "Your items are marked sold. We’ll initiate your payout when the buyer’s payment is received.",
+                    "Listed for sale":
+                      "Your items are listed for sale. We’ll send buyer offers for your approval by email.",
+                    "Consignment confirmed":
+                      "Your consignment arrangements are confirmed. Follow the delivery instructions agreed with the shop.",
+                    "Awaiting items":
+                      "We’re waiting for your items. Follow the delivery instructions agreed with the shop.",
+                  }[request.stage] ||
+                  "Your consignment request is saved. We’ll confirm arrangements and send buyer offers for your approval by email."
+                : "Your request is saved. We’ll email you when your offer is ready."}
         </p>
       )}
       {request.offer?.acceptedAt && request.offer.url && (
         <ShippingPanel token={request.offer.url.slice("/offer/".length)} />
+      )}
+      {request.saleMethod === "consignment" && (
+        <section className={styles.notice}>
+          <p>
+            Your asking prices are sale-price targets before fees and our share.
+            We’ll aim for your targets and ask for approval before accepting
+            buyer offers.
+          </p>
+          <p>{CONSIGNMENT_PAYMENT}</p>
+          <a className="text-link" href="/consignment">
+            View payout rates and fees
+          </a>
+        </section>
       )}
       <section className={styles.section} aria-labelledby="your-items">
         <h2 id="your-items">Your items</h2>

@@ -1,3 +1,5 @@
+import { CONSIGNMENT_STATUSES } from "../../../../lib/sale-method";
+import { STATUSES } from "../../../../lib/validation";
 import { randomUUID } from "node:crypto";
 import { purchaseSnapshot } from "../../../../lib/purchase-terms";
 import { purchasePath } from "../../../../lib/purchase-token";
@@ -51,7 +53,7 @@ export async function GET(request) {
       );
     }
     const rows =
-      await sql`SELECT id,created_at,seller_name,status,jsonb_array_length(cards) AS card_count,notified_at FROM submissions ORDER BY created_at DESC LIMIT 500`;
+      await sql`SELECT id,created_at,seller_name,status,sale_method,jsonb_array_length(cards) AS card_count,notified_at FROM submissions ORDER BY created_at DESC LIMIT 500`;
     return Response.json(
       { submissions: rows },
       { headers: { "Cache-Control": "no-store" } },
@@ -115,6 +117,28 @@ export async function PATCH(request) {
     const [submission] = await sql`SELECT * FROM submissions WHERE id=${d.id}`;
     if (!submission)
       return Response.json({ error: "Request not found" }, { status: 404 });
+    if (
+      submission.sale_method === "consignment" &&
+      (d.offer || d.requestAcceptance)
+    )
+      return Response.json(
+        {
+          error:
+            "This is a consignment request. Direct-purchase offers and purchase terms cannot be sent for it.",
+        },
+        { status: 400 },
+      );
+    if (
+      !(
+        submission.sale_method === "consignment"
+          ? CONSIGNMENT_STATUSES
+          : STATUSES
+      ).includes(d.status)
+    )
+      return Response.json(
+        { error: "Choose a status for this request type." },
+        { status: 400 },
+      );
     let photos;
     try {
       photos = await prepareOfferPhotos(

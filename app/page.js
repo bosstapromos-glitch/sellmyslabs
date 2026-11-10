@@ -109,6 +109,19 @@ export default function Home() {
             </span>
           </div>
         </div>
+        <section className="section wrap" aria-labelledby="consignment-heading">
+          <div className="section-heading">
+            <h2 id="consignment-heading">Prefer to consign?</h2>
+            <p>
+              We can offer your graded cards, raw cards and sealed products
+              in-store and on eBay. Set a target price and review buyer offers
+              before accepting a sale.
+            </p>
+          </div>
+          <a className="button secondary" href="/consignment">
+            Explore consignment
+          </a>
+        </section>
         <section className="section wrap" id="how-it-works">
           <div className="section-heading">
             <h2>Sell in three steps.</h2>

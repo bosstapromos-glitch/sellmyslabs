@@ -36,6 +36,14 @@ export default function Page() {
           agreeing to sell your cards or products. Your offer link lists the
           items and collection total for your specific purchase.
         </p>
+        <p>
+          These terms apply to direct purchases by our shop.{" "}
+          <a className="text-link" href="/consignment">
+            Consignment
+          </a>{" "}
+          has separate sale, fee and payout arrangements that we confirm with
+          you.
+        </p>
         <PurchaseTerms terms={PURCHASE_TERMS} />
         <p>
           Questions before you agree?{" "}

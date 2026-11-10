@@ -59,3 +59,5 @@ CREATE TABLE IF NOT EXISTS account_drafts (
  updated_at timestamptz NOT NULL DEFAULT now(), closed_at timestamptz
 );
 CREATE INDEX IF NOT EXISTS account_drafts_owner ON account_drafts(customer_user_id,updated_at DESC);
+
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS sale_method text NOT NULL DEFAULT 'direct' CHECK (sale_method IN ('direct','consignment'));

@@ -1,3 +1,4 @@
+import { saleMethodLabel } from "../../lib/sale-method";
 import { listAccountDrafts } from "../../lib/account-drafts";
 import { db } from "../../lib/db";
 import DraftList from "./DraftList";
@@ -56,7 +57,8 @@ export default async function Page({ searchParams }) {
                 >
                   <div>
                     <span className={styles.reference}>
-                      REQUEST {request.reference}
+                      {saleMethodLabel(request.saleMethod)} ·{" "}
+                      {request.reference}
                     </span>
                     <h2>
                       {request.cards[0]?.name || "Your collection"}

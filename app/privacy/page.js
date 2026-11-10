@@ -38,12 +38,13 @@ export default function Page() {
         <h2>What we collect</h2>
         <p>
           We collect the name, email, optional phone number, card and product
-          details, asking prices, notes and photos you submit. The website also
-          uses limited request information to protect forms against abuse. If
-          you accept an offer online, we also retain the listed items, price,
-          exact purchase terms, the name you enter and the time of acceptance.
-          If you share tracking, we retain the carrier, tracking number and
-          purchase progress confirmed by you and the shop.
+          details, asking prices, your choice of direct sale or consignment,
+          notes and photos you submit. The website also uses limited request
+          information to protect forms against abuse. If you accept an offer
+          online, we also retain the listed items, price, exact purchase terms,
+          the name you enter and the time of acceptance. If you share tracking,
+          we retain the carrier, tracking number and purchase progress confirmed
+          by you and the shop.
         </p>
         <p>
           Photos upload privately as you add them to the form, before you send
@@ -54,8 +55,10 @@ export default function Page() {
         <h2>How we use it</h2>
         <p>
           We use your information to evaluate your items, contact you about your
-          request, and manage a potential purchase. Sending a request is not a
-          subscription to marketing messages.
+          request, and manage a potential purchase or consignment. For
+          consignment, we confirm listing arrangements before sharing item
+          descriptions and photos with prospective buyers in-store or on eBay.
+          Sending a request is not a subscription to marketing messages.
         </p>
         <h2>Where it goes</h2>
         <p>
