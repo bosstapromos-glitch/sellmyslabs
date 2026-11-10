@@ -40,9 +40,10 @@ export default function Page() {
           <h2>Your price. Your approval.</h2>
           <p>{CONSIGNMENT_APPROVAL}</p>
           <p>
-            We review each request and confirm listing, delivery and consignment
-            arrangements with you before proceeding. Please wait for
-            confirmation before sending items.
+            We review each request and send a consignment arrangement for you to
+            accept in your account. Buyer offers follow the same approval
+            process. We email a private link when an approval is ready. Confirm
+            delivery arrangements with us before sending items.
           </p>
         </section>
         <section className={styles.section} aria-label="Consignment rates">

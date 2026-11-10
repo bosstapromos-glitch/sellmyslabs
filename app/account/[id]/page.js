@@ -1,3 +1,4 @@
+import ConsignmentApprovals from "../ConsignmentApprovals";
 import { saleMethodLabel } from "../../../lib/sale-method";
 import { CONSIGNMENT_PAYMENT } from "../../../lib/consignment";
 import Link from "next/link";
@@ -40,6 +41,10 @@ export default async function Page({ params }) {
         </div>
         <RefreshRequest />
       </div>
+      <ConsignmentApprovals
+        approvals={request.consignmentApprovals}
+        closed={request.closed}
+      />
       {request.offer ? (
         <section className={styles.offer} aria-label="Your offer">
           <div>
@@ -82,13 +87,13 @@ export default async function Page({ params }) {
                     "Sold · awaiting payout":
                       "Your items are marked sold. We’ll initiate your payout when the buyer’s payment is received.",
                     "Listed for sale":
-                      "Your items are listed for sale. We’ll send buyer offers for your approval by email.",
+                      "Your items are listed for sale. Buyer offers will appear here for your approval.",
                     "Consignment confirmed":
                       "Your consignment arrangements are confirmed. Follow the delivery instructions agreed with the shop.",
                     "Awaiting items":
                       "We’re waiting for your items. Follow the delivery instructions agreed with the shop.",
                   }[request.stage] ||
-                  "Your consignment request is saved. We’ll confirm arrangements and send buyer offers for your approval by email."
+                  "Your consignment request is saved. Your arrangement and buyer offers will appear here for approval. We’ll email you when they’re ready."
                 : "Your request is saved. We’ll email you when your offer is ready."}
         </p>
       )}

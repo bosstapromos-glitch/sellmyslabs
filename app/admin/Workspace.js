@@ -4,8 +4,11 @@ import { requestJSON } from "../../lib/request-json";
 import { hasOwnerEdits, hasSellerContextEdits } from "../../lib/owner-edits";
 import useUnsavedChanges from "../components/useUnsavedChanges";
 import OfferEmailStatus from "./OfferEmailStatus";
-import { CONSIGNMENT_STATUSES, saleMethodLabel } from "../../lib/sale-method";
-import { CONSIGNMENT_PAYMENT } from "../../lib/consignment";
+import {
+  CONSIGNMENT_MANUAL_STATUSES,
+  saleMethodLabel,
+} from "../../lib/sale-method";
+import ConsignmentOffers from "./ConsignmentOffers";
 import OfferContext from "./OfferContext";
 import OfferAcceptance from "./OfferAcceptance";
 import ShipmentProgress from "./ShipmentProgress";
@@ -39,14 +42,16 @@ export default function Workspace({ authenticated }) {
   const [listError, setListError] = useState("");
   const [sessionExpired, setSessionExpired] = useState(false);
   const [conflict, setConflict] = useState(false);
+  const [consignmentDirty, setConsignmentDirty] = useState(false);
   const sellerContext = { sellerMessage, offerPhotos, newOfferPhotos };
   const changedContext = hasSellerContextEdits(selected, sellerContext);
-  const unsaved = hasOwnerEdits(selected, {
+  const ownerUnsaved = hasOwnerEdits(selected, {
     offer,
     notes,
     status,
     ...sellerContext,
   });
+  const unsaved = ownerUnsaved || consignmentDirty;
   const { confirmLeave: mayLeave, allowUnload } = useUnsavedChanges(
     unsaved || preparingPhotos,
   );
@@ -87,7 +92,8 @@ export default function Workspace({ authenticated }) {
       setDetailOpen(true);
       return;
     }
-    if (!mayLeave()) return;
+    if (!reload && !mayLeave()) return;
+    setConsignmentDirty(false);
     const sequence = ++requestSequence.current;
     setConflict(false);
     setDetailOpen(true);
@@ -488,8 +494,13 @@ export default function Workspace({ authenticated }) {
                 </span>
                 <div className="request-heading">
                   <h2>{selected.seller_name}</h2>
-                  <a className="text-link" href="#offer-editor">
-                    {consignment ? "Manage consignment ↓" : "Go to offer ↓"}
+                  <a
+                    className="text-link"
+                    href={
+                      consignment ? "#consignment-approvals" : "#offer-editor"
+                    }
+                  >
+                    {consignment ? "Consignment approvals ↓" : "Go to offer ↓"}
                   </a>
                 </div>
                 <p>
@@ -546,6 +557,18 @@ export default function Workspace({ authenticated }) {
                 />
                 <SlabResearch cards={selected.cards} />
               </div>
+              {consignment && (
+                <ConsignmentOffers
+                  key={`${selected.id}:${selected.edit_version}`}
+                  submission={selected}
+                  disabled={busy || ownerUnsaved}
+                  onDirty={setConsignmentDirty}
+                  onPublished={async () => {
+                    await refresh();
+                    await open(selected.id, { reload: true });
+                  }}
+                />
+              )}
               <form
                 id="offer-editor"
                 className="panel offer-editor"
@@ -556,32 +579,15 @@ export default function Workspace({ authenticated }) {
                   {unsaved && <span className="hint">Unsaved changes</span>}
                 </div>
                 {consignment && (
-                  <div className="notice">
-                    <p>
-                      Review the seller’s asking prices before listing in-store
-                      or on eBay. Confirm listing and delivery arrangements with
-                      the seller. Send buyer offers for approval before
-                      accepting them.
-                    </p>
-                    <p>{CONSIGNMENT_PAYMENT}</p>
-                    <a
-                      className="text-link"
-                      href={`mailto:${selected.email}?subject=${encodeURIComponent("Your SellMySlabs consignment · " + selected.id.slice(0, 8).toUpperCase())}`}
-                    >
-                      Email seller about consignment
-                    </a>{" "}
-                    ·{" "}
-                    <a
-                      className="text-link"
-                      href="/consignment"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Rates and fees
-                    </a>
-                  </div>
+                  <p className="hint">
+                    Manage private notes and progress here. Use Consignment
+                    approvals above to send arrangements and buyer offers.
+                  </p>
                 )}
-                <fieldset disabled={busy} className="form-fields">
+                <fieldset
+                  disabled={busy || consignmentDirty}
+                  className="form-fields"
+                >
                   <div className="field-grid">
                     <label className="field">
                       Status
@@ -592,11 +598,18 @@ export default function Workspace({ authenticated }) {
                           setSaved(false);
                         }}
                       >
-                        {(consignment ? CONSIGNMENT_STATUSES : STATUSES).map(
-                          (v) => (
-                            <option key={v}>{v}</option>
-                          ),
-                        )}
+                        {consignment &&
+                          !CONSIGNMENT_MANUAL_STATUSES.includes(status) && (
+                            <option value={status} disabled>
+                              {status}
+                            </option>
+                          )}
+                        {(consignment
+                          ? CONSIGNMENT_MANUAL_STATUSES
+                          : STATUSES
+                        ).map((v) => (
+                          <option key={v}>{v}</option>
+                        ))}
                       </select>
                     </label>
                     {!consignment && (
@@ -664,14 +677,17 @@ export default function Workspace({ authenticated }) {
                 </fieldset>
                 <p className="hint" id="offer-help">
                   {consignment
-                    ? "Status updates appear in the customer’s account. Private notes stay private. Use Email seller to discuss listing details and buyer offers."
+                    ? "Status updates appear in the customer’s account. Private notes stay private. Acceptances are recorded in Consignment approvals above."
                     : normalizedOffer && normalizedOffer !== null
                       ? `Changes to the price, seller message or sales photos email the offer to ${selected.email}, with a private copy to you.`
                       : "Add a price when you’re ready to email the offer. Messages and sales photos can be saved as a draft."}{" "}
                   {!consignment &&
                     "Private notes stay private. Status updates appear in the customer’s account."}
                 </p>
-                <button className="button" disabled={busy || !unsaved}>
+                <button
+                  className="button"
+                  disabled={busy || !ownerUnsaved || consignmentDirty}
+                >
                   {busy
                     ? preparingPhotos
                       ? "Preparing photos…"

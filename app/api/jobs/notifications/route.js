@@ -1,3 +1,5 @@
+import { PENDING_CONSIGNMENT_EMAILS_SQL } from "../../../../lib/consignment-records";
+import { deliverConsignmentEmail } from "../../../../lib/consignment-mail";
 import { del } from "@vercel/blob";
 import { cleanupUploads } from "../../../../lib/submission-uploads";
 import { db } from "../../../../lib/db";
@@ -9,12 +11,12 @@ export async function GET(request) {
     !process.env.CRON_SECRET ||
     request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`
   )
-    await sql`DELETE FROM account_drafts WHERE updated_at<now()-interval '31 days'`;
-  await cleanupUploads(sql, del).catch(() =>
-    console.error("Photo cleanup will retry."),
-  );
-  return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
   const sql = db();
+  const consignmentEmails = await sql.query(PENDING_CONSIGNMENT_EMAILS_SQL, []);
+  await Promise.allSettled(
+    consignmentEmails.map((e) => deliverConsignmentEmail(e.id)),
+  );
   const receipts =
     await sql`SELECT offer_id FROM purchase_receipts WHERE status IN ('pending','failed','sending') AND (locked_until IS NULL OR locked_until<now()) AND (first_attempt_at IS NULL OR first_attempt_at>now()-interval '23 hours') ORDER BY created_at LIMIT 3`;
   await Promise.allSettled(
@@ -41,5 +43,6 @@ export async function GET(request) {
     sent,
     pending: rows.length - sent,
     receiptRetries: receipts.length,
+    consignmentEmailRetries: consignmentEmails.length,
   });
 }

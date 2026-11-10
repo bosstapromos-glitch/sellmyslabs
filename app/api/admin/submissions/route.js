@@ -1,4 +1,4 @@
-import { CONSIGNMENT_STATUSES } from "../../../../lib/sale-method";
+import { canSetConsignmentStatus } from "../../../../lib/sale-method";
 import { STATUSES } from "../../../../lib/validation";
 import { randomUUID } from "node:crypto";
 import { purchaseSnapshot } from "../../../../lib/purchase-terms";
@@ -129,11 +129,9 @@ export async function PATCH(request) {
         { status: 400 },
       );
     if (
-      !(
-        submission.sale_method === "consignment"
-          ? CONSIGNMENT_STATUSES
-          : STATUSES
-      ).includes(d.status)
+      !(submission.sale_method === "consignment"
+        ? canSetConsignmentStatus(d.status, submission.status)
+        : STATUSES.includes(d.status))
     )
       return Response.json(
         { error: "Choose a status for this request type." },

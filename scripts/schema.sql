@@ -61,3 +61,21 @@ CREATE TABLE IF NOT EXISTS account_drafts (
 CREATE INDEX IF NOT EXISTS account_drafts_owner ON account_drafts(customer_user_id,updated_at DESC);
 
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS sale_method text NOT NULL DEFAULT 'direct' CHECK (sale_method IN ('direct','consignment'));
+
+CREATE TABLE IF NOT EXISTS consignment_offers (
+ id uuid PRIMARY KEY, submission_id uuid NOT NULL REFERENCES submissions(id),
+ kind text NOT NULL CHECK(kind IN ('arrangement','sale')), snapshot jsonb NOT NULL,
+ arrangement_id uuid REFERENCES consignment_offers(id),
+ created_at timestamptz NOT NULL DEFAULT now(), withdrawn_at timestamptz,
+ accepted_at timestamptz, accepted_name text
+);
+CREATE INDEX IF NOT EXISTS consignment_offers_request ON consignment_offers(submission_id,created_at DESC);
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS consignment_arrangement_id uuid;
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS consignment_offer_id uuid;
+CREATE TABLE IF NOT EXISTS consignment_emails (
+ id uuid PRIMARY KEY, offer_id uuid NOT NULL REFERENCES consignment_offers(id),
+ kind text NOT NULL CHECK(kind IN ('offer','acceptance')), payload jsonb NOT NULL,
+ status text NOT NULL DEFAULT 'pending', created_at timestamptz NOT NULL DEFAULT now(),
+ first_attempt_at timestamptz,locked_until timestamptz,lease_id uuid,sent_at timestamptz,provider_id text,error text,
+ UNIQUE(offer_id,kind)
+);

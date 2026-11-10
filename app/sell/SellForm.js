@@ -1122,7 +1122,7 @@ export default function SellForm() {
               )}
               <p className={styles.hint}>
                 {consignment
-                  ? "This is a consignment request, not permission to list or sell your items. We’ll confirm arrangements and ask for your approval of buyer offers before proceeding."
+                  ? "This is a consignment request, not permission to list or sell your items. We’ll send your arrangement and buyer offers to your account for approval before proceeding."
                   : "This is a request for an offer, not an agreement to sell. Please wait for an accepted offer and confirmed shipping details before sending items."}
               </p>
             </>
