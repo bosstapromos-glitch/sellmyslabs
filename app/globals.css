@@ -1981,8 +1981,7 @@ h1 .h1-kicker {
   transform: translateX(4px);
 }
 .consign-band {
-  background: var(--wash);
-  padding-block: 80px;
+  padding-block: 0 80px;
 }
 .consign-grid {
   display: grid;
@@ -2001,8 +2000,7 @@ h1 .h1-kicker {
   list-style: none;
   margin: 0;
   padding: 8px 32px;
-  background: var(--white);
-  border: 1px solid var(--line);
+  background: var(--wash);
   border-radius: var(--radius-surface);
 }
 .consign-points li {
@@ -2051,13 +2049,26 @@ h1 .h1-kicker {
 }
 @media (max-width: 540px) {
   .buy-grid {
-    grid-template-columns: 1fr;
+    gap: 12px;
   }
   .buy-grid a {
     min-height: 0;
+    padding: 18px 16px;
+  }
+  .buy-grid strong {
+    font-size: 17px;
+    padding-right: 22px;
+  }
+  .buy-grid span {
+    font-size: 14px;
+  }
+  .buy-grid em {
+    right: 14px;
+    top: 16px;
+    font-size: 17px;
   }
   .consign-band {
-    padding-block: 56px;
+    padding-block: 0 56px;
   }
   .consign-points {
     padding-inline: 22px;
