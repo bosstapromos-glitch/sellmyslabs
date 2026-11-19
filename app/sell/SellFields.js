@@ -70,6 +70,12 @@ function Photo({ file, index, onRemove, disabled }) {
           </button>
         )}
       </div>
+      {!!file.warnings?.length && (
+        <p className={styles.photoWarning}>
+          <strong>Check photo {index + 1}.</strong> {file.warnings.join(" ")}
+          {onRemove && " Remove it and retake if needed."}
+        </p>
+      )}
     </li>
   );
 }

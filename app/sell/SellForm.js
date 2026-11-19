@@ -62,6 +62,7 @@ export default function SellForm() {
   const [draftNotice, setDraftNotice] = useState("");
   const [preparing, setPreparing] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(null);
+  const [photoProblems, setPhotoProblems] = useState([]);
   const preparingLock = useRef(false);
   const [expandedItem, setExpandedItem] = useState(0);
   const [importing, setImporting] = useState(false);
@@ -266,6 +267,7 @@ export default function SellForm() {
     event.target.value = "";
     if (!selected.length || working || preparingLock.current) return;
     setError("");
+    setPhotoProblems([]);
     preparingLock.current = true;
     setPreparing(true);
     try {
@@ -292,8 +294,7 @@ export default function SellForm() {
         messages.push(
           `Your request has room for ${MAX_SUBMISSION_PHOTOS} photos. ${result.skipped} extra photo${result.skipped === 1 ? " was" : "s were"} not added. Use clear group photos for a larger collection.`,
         );
-      if (messages.length)
-        setError(messages.join(" ") + " Your added photos are still attached.");
+      setPhotoProblems(messages);
     } finally {
       preparingLock.current = false;
       setPreparing(false);
@@ -855,11 +856,28 @@ export default function SellForm() {
                   <span className={styles.required}>At least 1 required</span>
                 </div>
                 <p>
-                  Show the front and back of your cards, or the packaging and
-                  seals. Keep labels in focus and avoid glare. You can attach up
-                  to {MAX_SUBMISSION_PHOTOS} photos per request, so each slab
-                  can have its own photo. Photos upload privately as you add
-                  them.
+                  Show the front and back of each card, or the packaging and
+                  seals. You can attach up to {MAX_SUBMISSION_PHOTOS} photos
+                  per request, so each slab can have its own photos. Photos
+                  upload privately as you add them.
+                </p>
+                <ul className={styles.photoTips} aria-label="Photo tips">
+                  <li>
+                    <strong>Fill the frame.</strong> One item per photo, close
+                    enough to read the label.
+                  </li>
+                  <li>
+                    <strong>Use bright, even light.</strong> No flash. Tilt the
+                    slab until the glare is gone.
+                  </li>
+                  <li>
+                    <strong>Hold steady.</strong> Tap the label to focus before
+                    you shoot.
+                  </li>
+                </ul>
+                <p className={styles.hint}>
+                  We check each photo as you add it. If one is too blurry, dark
+                  or small to read, we’ll ask you to retake it.
                 </p>
                 <div className={styles.uploadActions}>
                   <button
@@ -902,6 +920,23 @@ export default function SellForm() {
                   <p id="photos-error" className={styles.fieldError}>
                     {errors.photos}
                   </p>
+                )}
+                {!!photoProblems.length && (
+                  <div className={styles.photoProblems} role="alert">
+                    <strong>
+                      {photoProblems.length === 1
+                        ? "One photo was not added."
+                        : `${photoProblems.length} photos were not added.`}
+                    </strong>
+                    <ul>
+                      {photoProblems.map((problem) => (
+                        <li key={problem}>{problem}</li>
+                      ))}
+                    </ul>
+                    {!!photos.length && (
+                      <p>Your other photos are still attached.</p>
+                    )}
+                  </div>
                 )}
                 <p className={styles.hint} role="status">
                   {preparing

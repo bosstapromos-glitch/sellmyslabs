@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { preparePhoto, photoPreview } from "../lib/prepare-photo.js";
-import { prepareSelection } from "../lib/photo-selection.js";
+import {
+  prepareSelection,
+  PHOTO_MAX_EDGE,
+  MAX_PHOTO_BYTES,
+} from "../lib/photo-selection.js";
 
 test("photo processing releases pixel buffers on success and failure, keeps previews small, and serializes concurrent calls", async (t) => {
   let active = 0,
@@ -56,10 +60,11 @@ test("photo processing releases pixel buffers on success and failure, keeps prev
     assert.equal(peak, 1);
     assert.equal(files.length, 8);
     assert.ok(
-      files.every((file) => file.type === "image/jpeg" && file.size <= 350000),
+      files.every((file) => file.type === "image/jpeg" && file.size <= MAX_PHOTO_BYTES),
     );
     assert.ok(files.every((file) => photoPreview(file) !== file));
-    assert.ok(sizes.some(([w, h]) => w === 1800 && h === 1200));
+    assert.equal(PHOTO_MAX_EDGE, 2400);
+    assert.ok(sizes.some(([w, h]) => w === 2400 && h === 1600));
     assert.ok(sizes.some(([w, h]) => w === 320 && h === 213));
     assert.ok(bitmaps.every((b) => b.closed));
     assert.ok(canvases.every((c) => c.width === 0 && c.height === 0));

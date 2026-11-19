@@ -11,6 +11,7 @@ import {
   uploadHash,
 } from "../lib/submission-uploads";
 import { uploadPhoto } from "../lib/upload-photo";
+import { MAX_PHOTO_BYTES } from "../lib/photo-selection";
 import {
   prepareSelection,
   MAX_SUBMISSION_PHOTOS,
@@ -40,7 +41,7 @@ test("100 separate private uploads resolve in order, persist together, reject st
       deleted = [];
     const put = async (path, bytes, options) => {
       assert.equal(options.access, "private");
-      assert.ok(bytes.length <= 350000);
+      assert.ok(bytes.length <= MAX_PHOTO_BYTES);
       const url = "https://test.private.blob.vercel-storage.com/" + path;
       blobs.set(url, bytes);
       return { url, pathname: path };
@@ -86,7 +87,7 @@ test("100 separate private uploads resolve in order, persist together, reject st
       /Choose/,
     );
     await assert.rejects(
-      stagePhoto(id, new File([new Uint8Array(350001)], "large.jpg"), deps),
+      stagePhoto(id, new File([new Uint8Array(MAX_PHOTO_BYTES + 1)], "large.jpg"), deps),
       /large/,
     );
     await assert.rejects(stagePhoto("invalid", jpeg(), deps), /reload/);
@@ -248,7 +249,7 @@ test("large batches await each upload, keep only preview+receipt, and recover fr
   assert.ok(
     saved.every(
       (p) =>
-        Object.keys(p).sort().join(",") === "expiresAt,name,preview,token" &&
+        Object.keys(p).sort().join(",") === "expiresAt,name,preview,token,warnings" &&
         p.preview === preview,
     ),
   );
@@ -279,7 +280,7 @@ test("upload endpoint rejects cross-origin, oversized, unavailable and rate-limi
   assert.equal(
     (
       await createPhotoUploadHandler(deps)(
-        req({ origin: "https://example.com", "content-length": "500001" }),
+        req({ origin: "https://example.com", "content-length": String(MAX_PHOTO_BYTES + 150001) }),
       )
     ).status,
     413,

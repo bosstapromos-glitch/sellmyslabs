@@ -564,3 +564,53 @@
     grid-template-columns: 1fr;
   }
 }
+.photoTips {
+  list-style: none;
+  margin: 16px 0 12px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.photoTips li {
+  padding: 14px 16px;
+  background: var(--wash);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.photoTips strong {
+  display: block;
+  color: var(--ink);
+}
+.photoProblems {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--error);
+  background: #fff5f5;
+  border-radius: 0 10px 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.photoProblems ul {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+.photoProblems p {
+  margin: 0;
+}
+.photoWarning {
+  margin: 2px 0 0;
+  padding: 8px 10px;
+  background: #fff8e6;
+  border-radius: 8px;
+  color: #6b4a00;
+  font-size: 12px;
+  line-height: 1.45;
+}
+@media (max-width: 700px) {
+  .photoTips {
+    grid-template-columns: 1fr;
+  }
+}
