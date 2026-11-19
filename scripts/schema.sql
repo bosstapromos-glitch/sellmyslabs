@@ -89,3 +89,11 @@ ALTER TABLE consignment_emails ADD CONSTRAINT consignment_emails_kind_check CHEC
 ALTER TABLE offer_emails ADD COLUMN IF NOT EXISTS responded_at timestamptz;
 ALTER TABLE offer_emails ADD COLUMN IF NOT EXISTS response_name text;
 ALTER TABLE offer_emails ADD COLUMN IF NOT EXISTS response jsonb CHECK (response IS NULL OR (accepted_at IS NULL AND response->>'action' IN ('decline','counter')));
+
+CREATE TABLE IF NOT EXISTS photo_retakes (
+ id uuid PRIMARY KEY, submission_id uuid NOT NULL,
+ photos jsonb NOT NULL, note text NOT NULL DEFAULT '',
+ email_status text NOT NULL DEFAULT 'pending',
+ created_at timestamptz NOT NULL DEFAULT now(), closed_at timestamptz
+);
+CREATE INDEX IF NOT EXISTS photo_retakes_submission ON photo_retakes(submission_id, created_at DESC);

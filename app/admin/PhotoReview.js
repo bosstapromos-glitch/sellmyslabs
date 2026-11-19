@@ -1,5 +1,7 @@
 "use client";
 import { labelText } from "../../lib/photo-labels";
+import { requestJSON } from "../../lib/request-json";
+import retakeStyles from "./Retake.module.css";
 import { useEffect, useRef, useState } from "react";
 
 import PhotoPager, { PHOTO_PAGE_SIZE } from "../components/PhotoPager";
@@ -150,8 +152,62 @@ function PhotoViewer({
   );
 }
 
-export default function PhotoReview({ id, photos, cards }) {
+function RetakeStatus({ retake }) {
+  if (!retake) return null;
+  const sent = new Date(retake.createdAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+  return (
+    <p className={retakeStyles.status} role="status">
+      <strong>
+        {retake.replaced === retake.photos.length
+          ? "Retakes received."
+          : retake.open
+            ? "Retake requested."
+            : "Earlier retake request closed."}
+      </strong>{" "}
+      {retake.replaced} of {retake.photos.length} photo
+      {retake.photos.length === 1 ? "" : "s"} replaced · requested {sent}
+      {retake.emailStatus === "sent"
+        ? ""
+        : " · the email was not confirmed; send it again or contact the seller"}
+    </p>
+  );
+}
+
+export default function PhotoReview({ id, photos, cards, retake, email }) {
   const [selected, setSelected] = useState(null);
+  const [marked, setMarked] = useState([]);
+  const [note, setNote] = useState("");
+  const [sending, setSending] = useState(false);
+  const [latest, setLatest] = useState(retake || null);
+  const [problem, setProblem] = useState("");
+  // The request list loads before its detail, so the status can arrive late.
+  useEffect(() => setLatest(retake || null), [retake]);
+  async function requestRetake() {
+    if (sending || !marked.length) return;
+    setSending(true);
+    setProblem("");
+    try {
+      const result = await requestJSON(
+        "/api/admin/retake",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, photos: marked, note }),
+        },
+        "The retake request could not be sent. Please try again.",
+      );
+      setLatest(result.retake);
+      setMarked([]);
+      setNote("");
+    } catch (failure) {
+      setProblem(failure.message);
+    } finally {
+      setSending(false);
+    }
+  }
   const [page, setPage] = useState(0);
   const current = Math.min(
     page,
@@ -169,7 +225,11 @@ export default function PhotoReview({ id, photos, cards }) {
           {photos.length} photo{photos.length === 1 ? "" : "s"}
         </span>
       </div>
-      <p className="hint">Open a photo to check its label and condition.</p>
+      <p className="hint">
+        Open a photo to check its label and condition. Tick any that need to be
+        retaken.
+      </p>
+      <RetakeStatus retake={latest} />
       {!photos.length && (
         <p className="hint">
           No photos were included with this earlier request.
@@ -215,11 +275,63 @@ export default function PhotoReview({ id, photos, cards }) {
                     Download
                   </a>
                 </div>
+                <label className={retakeStyles.mark}>
+                  <input
+                    type="checkbox"
+                    checked={marked.includes(photo.index)}
+                    onChange={(event) =>
+                      setMarked((current) =>
+                        event.target.checked
+                          ? [...current, photo.index]
+                          : current.filter((index) => index !== photo.index),
+                      )
+                    }
+                  />
+                  Needs retake
+                  {photo.retaken && (
+                    <span className={retakeStyles.retaken}>Retaken</span>
+                  )}
+                </label>
               </article>
             );
           })}
       </div>
       <PhotoPager page={current} total={photos.length} onChange={setPage} />
+      {!!marked.length && (
+        <div className={retakeStyles.request}>
+          <label htmlFor="retake-note">
+            Note to the seller <span className="hint">Optional</span>
+          </label>
+          <textarea
+            id="retake-note"
+            rows={2}
+            maxLength={1000}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            placeholder="e.g. The cert number is hidden by glare."
+          />
+          <button
+            type="button"
+            className="button small"
+            disabled={sending}
+            onClick={requestRetake}
+          >
+            {sending
+              ? "Sending…"
+              : `Email retake request (${marked.length} photo${marked.length === 1 ? "" : "s"})`}
+          </button>
+          <p className="hint">
+            Emails {email || "the seller"} a private link to replace{" "}
+            {marked.length === 1 ? "this photo" : "these photos"}. A new
+            request replaces any earlier one.
+          </p>
+        </div>
+      )}
+      {problem && (
+        <p className="error" role="alert">
+          {problem}
+        </p>
+      )}
       {selected !== null && (
         <PhotoViewer
           src={source(selected)}

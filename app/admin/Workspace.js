@@ -557,6 +557,8 @@ export default function Workspace({ authenticated }) {
                   id={selected.id}
                   photos={selected.photos}
                   cards={selected.cards}
+                  retake={selected.retake}
+                  email={selected.email}
                 />
                 <SlabResearch cards={selected.cards} />
               </div>

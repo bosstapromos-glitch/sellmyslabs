@@ -1,4 +1,5 @@
 import { cleanLabel } from "../../../../lib/photo-labels";
+import { latestRetake } from "../../../../lib/photo-retakes";
 import {
   canSetPurchaseResponseStatus,
   PURCHASE_RESPONSE_STATUSES,
@@ -54,8 +55,10 @@ export async function GET(request) {
             photos: row.photos.map((p, i) => ({
               index: i,
               type: p.type,
+              retaken: !!p.retake,
               ...cleanLabel(p, row.cards.length),
             })),
+            retake: await latestRetake(sql, id),
           },
         },
         { headers: { "Cache-Control": "no-store" } },
