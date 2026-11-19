@@ -99,3 +99,4 @@ CREATE TABLE IF NOT EXISTS photo_retakes (
 CREATE INDEX IF NOT EXISTS photo_retakes_submission ON photo_retakes(submission_id, created_at DESC);
 
 ALTER TABLE submissions ADD COLUMN IF NOT EXISTS seller_details jsonb NOT NULL DEFAULT '{}';
+ALTER TABLE offer_emails ADD COLUMN IF NOT EXISTS accepted_details jsonb;

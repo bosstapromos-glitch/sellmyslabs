@@ -1,4 +1,5 @@
 "use client";
+import { ADDRESS_THRESHOLD } from "../../../lib/seller-address";
 import { useState, useRef, useEffect } from "react";
 import PurchaseResponseForm from "./PurchaseResponseForm";
 import PurchaseResponseDetails from "../../components/PurchaseResponseDetails";
@@ -14,6 +15,18 @@ export default function OfferReview({ token, initialOffer }) {
   const [offer, setOffer] = useState(initialOffer);
   const [name, setName] = useState("");
   const [agree, setAgree] = useState(false);
+  const [address, setAddress] = useState({
+    street: "",
+    unit: "",
+    city: "",
+    state: "",
+    zip: "",
+  });
+  const addressField = (key) => ({
+    value: address[key],
+    onChange: (e) =>
+      setAddress((current) => ({ ...current, [key]: e.target.value })),
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [responseMode, setResponseMode] = useState("");
@@ -179,13 +192,18 @@ export default function OfferReview({ token, initialOffer }) {
           className="purchase-acceptance"
           onSubmit={(e) => {
             e.preventDefault();
-            send({ name, agree });
+            send(offer.requiresAddress ? { name, agree, address } : { name, agree });
           }}
         >
           <h2>Accept this offer</h2>
           <fieldset disabled={busy} className="form-fields">
             <label className="field">
-              Full name
+              {offer.requiresAddress ? "Full legal name" : "Full name"}
+              {offer.requiresAddress && (
+                <span className="hint">
+                  As it appears on your government-issued ID.
+                </span>
+              )}
               <input
                 name="name"
                 autoComplete="name"
@@ -196,6 +214,64 @@ export default function OfferReview({ token, initialOffer }) {
                 onChange={(e) => setName(e.target.value)}
               />
             </label>
+            {offer.requiresAddress && (
+              <>
+                <label className="field">
+                  Mailing address
+                  <span className="hint">
+                    Required for purchases of ${ADDRESS_THRESHOLD} or more.
+                  </span>
+                  <input
+                    name="street"
+                    autoComplete="address-line1"
+                    required
+                    minLength={3}
+                    maxLength={200}
+                    placeholder="Street address"
+                    {...addressField("street")}
+                  />
+                </label>
+                <label className="field">
+                  Apartment, suite or unit (optional)
+                  <input
+                    name="unit"
+                    autoComplete="address-line2"
+                    maxLength={100}
+                    {...addressField("unit")}
+                  />
+                </label>
+                <label className="field">
+                  City
+                  <input
+                    name="city"
+                    autoComplete="address-level2"
+                    required
+                    maxLength={80}
+                    {...addressField("city")}
+                  />
+                </label>
+                <label className="field">
+                  State
+                  <input
+                    name="state"
+                    autoComplete="address-level1"
+                    required
+                    maxLength={40}
+                    {...addressField("state")}
+                  />
+                </label>
+                <label className="field">
+                  ZIP code
+                  <input
+                    name="zip"
+                    autoComplete="postal-code"
+                    required
+                    maxLength={12}
+                    {...addressField("zip")}
+                  />
+                </label>
+              </>
+            )}
             <label className="purchase-consent">
               <input
                 type="checkbox"
@@ -215,6 +291,8 @@ export default function OfferReview({ token, initialOffer }) {
           <p className="hint">
             We’ll email a copy to the address used for your submission. No bank
             or payment-account details are needed here.
+            {offer.requiresAddress &&
+              " We keep your legal name and mailing address with this acceptance record."}
           </p>
         </form>
       )}

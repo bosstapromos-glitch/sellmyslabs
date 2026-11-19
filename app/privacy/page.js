@@ -43,7 +43,9 @@ export default function Page() {
           notes and photos you submit. The website also uses limited request
           information to protect forms against abuse. If you accept an offer
           online, we also retain the listed items, price, exact purchase terms,
-          the name you enter and the time of acceptance. If you share tracking,
+          the name you enter and the time of acceptance. For purchases of $500
+          or more, we also retain the legal name and mailing address you enter
+          when accepting. If you share tracking,
           we retain the carrier, tracking number and purchase progress confirmed
           by you and the shop.
         </p>

@@ -1,3 +1,4 @@
+import { addressLines } from "../../lib/seller-address";
 import PurchaseResponseDetails from "../components/PurchaseResponseDetails";
 import { purchaseResponseLabel } from "../../lib/purchase-response";
 export default function OfferAcceptance({
@@ -54,6 +55,17 @@ export default function OfferAcceptance({
                 {acceptance.accepted_name} ·{" "}
                 {new Date(acceptance.accepted_at).toLocaleString()}
               </p>
+              {acceptance.accepted_details && (
+                <p>
+                  Mailing address:
+                  {addressLines(acceptance.accepted_details).map((line) => (
+                    <span key={line}>
+                      <br />
+                      {line}
+                    </span>
+                  ))}
+                </p>
+              )}
               <p className="hint">
                 {acceptance.receipt?.status === "sent"
                   ? "Confirmation email sent to the seller, with your copy."

@@ -225,6 +225,7 @@ test("acceptance is atomic, immutable and idempotent; stale links and owner save
           name,
           "2026-11-01T20:00:00.000Z",
           JSON.stringify(copy),
+          null,
         ])
       ).rows;
     assert.equal((await accept(first.queued_email)).length, 1);
