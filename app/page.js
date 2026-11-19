@@ -1,10 +1,11 @@
 import Image from "next/image";
 import GoogleReviews from "./components/GoogleReviews";
 import InspectionNotice from "./components/InspectionNotice";
+import JsonLd, { faqSchema } from "./components/JsonLd";
+import snapshot from "../lib/google-reviews.json";
+import { BUY_GUIDES } from "../lib/sell-guides";
 export const metadata = { alternates: { canonical: "/" } };
-const businessData = {
-  "@context": "https://schema.org",
-  "@graph": [
+const businessGraph = [
     {
       "@type": "WebSite",
       "@id": "https://www.sellmyslabs.net/#website",
@@ -33,33 +34,56 @@ const businessData = {
       },
       sameAs: ["https://share.google/e0YnqDkZi036YkURF"],
     },
-  ],
-};
+];
 import { Header, Footer } from "./components/Shell";
 import Icon from "./components/Icon";
-import { BUSINESS, GRADERS, FAQS } from "../lib/site";
+import { BUSINESS, FAQS } from "../lib/site";
+import GraderLogos from "./components/GraderLogos";
+const HERO_SLABS = [
+  {
+    src: "/images/slabs/psa-luffy.jpg",
+    alt: "PSA 10 Monkey D. Luffy manga alternate art One Piece card in its slab",
+    width: 442,
+    height: 744,
+  },
+  {
+    src: "/images/slabs/tag-magikarp.jpg",
+    alt: "TAG 10 Magikarp art rare Pokémon card in its slab",
+    width: 606,
+    height: 1000,
+  },
+  {
+    src: "/images/slabs/cgc-pikachu.jpg",
+    alt: "CGC 9.5 Pikachu with Grey Felt Hat Pokémon card in its slab",
+    width: 747,
+    height: 1200,
+  },
+  {
+    src: "/images/slabs/bgs-ohtani.jpg",
+    alt: "Beckett 9 Shohei Ohtani Topps baseball card in its slab",
+    width: 640,
+    height: 1001,
+  },
+];
+const fiveStar = snapshot.reviews.filter((r) => r.rating === 5).length;
 export default function Home() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(businessData).replace(/</g, "\\u003c"),
-        }}
-      />
+      <JsonLd graph={[...businessGraph, faqSchema(FAQS)]} />
       <Header />
       <main id="main">
         <section className="hero wrap">
           <div className="hero-copy">
-            <span className="eyebrow">LIFESTYLE CARDS & COLLECTIBLES</span>
             <h1>
+              <span className="h1-kicker">
+                Sell graded cards, Pokémon &amp; sports cards
+              </span>
               Great cards.
               <br />
               <span>A simpler sale.</span>
             </h1>
             <p className="lead">
-              Sell graded cards, raw cards and sealed products. Get a personal
-              offer from our team in Twin Falls, Idaho.
+              Personal offers from a real card shop in Twin Falls, Idaho.
             </p>
             <div className="actions">
               <a className="button" href="/sell">
@@ -69,58 +93,71 @@ export default function Home() {
                 See how it works
               </a>
             </div>
-            <p className="micro">No obligation to sell.</p>
-            <InspectionNotice />
             <div className="accepted">
               <span>GRADED CARDS WE ACCEPT</span>
-              <div>
-                {GRADERS.map((g) => (
-                  <strong key={g}>{g}</strong>
-                ))}
-              </div>
+              <GraderLogos />
             </div>
           </div>
-          <figure className="hero-art">
-            <Image
-              src="/images/tag-charizard.jpg"
-              alt="Real TAG graded Charizard ex card in its clear protective slab"
-              width={1912}
-              height={3400}
-              sizes="(max-width: 700px) 80vw, 460px"
-              priority
-            />
-            <figcaption>
-              <span>Real cards. Real potential.</span>
-            </figcaption>
+          <figure className="hero-fan">
+            <ul>
+              {HERO_SLABS.map((slab, index) => (
+                <li key={slab.src}>
+                  <Image
+                    src={slab.src}
+                    alt={slab.alt}
+                    width={slab.width}
+                    height={slab.height}
+                    sizes="(max-width: 700px) 34vw, 190px"
+                    priority={index < 2}
+                  />
+                </li>
+              ))}
+            </ul>
           </figure>
         </section>
-        <div className="trust-strip">
-          <div className="wrap">
-            <span>
-              <Icon name="shop" />A real shop in Twin Falls, Idaho
-            </span>
-            <a href={BUSINESS.google} target="_blank" rel="noreferrer">
-              <Icon name="star" />
-              Meet us on Google
-            </a>
-            <span>
-              <Icon name="chat" />
-              Personal offers. Human support.
-            </span>
-          </div>
-        </div>
-        <section className="section wrap" aria-labelledby="consignment-heading">
+        <section className="proof" aria-label="What to expect">
+          <dl className="wrap">
+            <div>
+              <dt>24 hours</dt>
+              <dd>Typical reply with an offer or an update</dd>
+            </div>
+            <div>
+              <dt>Same day</dt>
+              <dd>Payment initiated once inspection confirms your items</dd>
+            </div>
+            <div>
+              <dt>{fiveStar} five-star</dt>
+              <dd>
+                <a href={BUSINESS.google} target="_blank" rel="noreferrer">
+                  Google ratings for our shop
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt>No obligation</dt>
+              <dd>You decide whether the offer works for you</dd>
+            </div>
+          </dl>
+        </section>
+        <section className="section wrap" aria-labelledby="buy-heading">
           <div className="section-heading">
-            <h2 id="consignment-heading">Prefer to consign?</h2>
+            <h2 id="buy-heading">What we buy.</h2>
             <p>
-              We can offer your graded cards, raw cards and sealed products
-              in-store and on eBay. Set a target price and review buyer offers
-              before accepting a sale.
+              Single cards or whole collections. Choose a category to see what
+              to send us.
             </p>
           </div>
-          <a className="button secondary" href="/consignment">
-            Explore consignment
-          </a>
+          <ul className="buy-grid">
+            {BUY_GUIDES.map((guide) => (
+              <li key={guide.slug}>
+                <a href={`/${guide.slug}`}>
+                  <strong>{guide.label}</strong>
+                  <span>{guide.blurb}</span>
+                  <em aria-hidden="true">→</em>
+                </a>
+              </li>
+            ))}
+          </ul>
         </section>
         <section className="section wrap" id="how-it-works">
           <div className="section-heading">
@@ -157,10 +194,44 @@ export default function Home() {
               </article>
             ))}
           </div>
+          <InspectionNotice />
           <div className="center">
             <a className="button" href="/sell">
               Request an offer
             </a>
+          </div>
+        </section>
+        <section className="consign-band" aria-labelledby="consignment-heading">
+          <div className="wrap consign-grid">
+            <div>
+              <h2 id="consignment-heading">Prefer to consign?</h2>
+              <p className="lead">
+                We can offer your graded cards, raw cards and sealed products
+                in-store and on eBay.
+              </p>
+              <div className="actions">
+                <a className="button secondary" href="/consignment">
+                  Explore consignment
+                </a>
+                <a className="text-link" href="/sell-or-consign-cards">
+                  Sell or consign?
+                </a>
+              </div>
+            </div>
+            <ul className="consign-points">
+              <li>
+                <strong>Your price</strong>
+                <span>Set a target price for each item.</span>
+              </li>
+              <li>
+                <strong>Two places to sell</strong>
+                <span>Offered in our store and on eBay.</span>
+              </li>
+              <li>
+                <strong>Your approval</strong>
+                <span>Review buyer offers before accepting a sale.</span>
+              </li>
+            </ul>
           </div>
         </section>
         <section className="shop-section" id="our-shop">
@@ -202,6 +273,17 @@ export default function Home() {
         <section className="section wrap faq-grid" id="faq">
           <div>
             <h2>Questions before you sell?</h2>
+            <p>
+              Can’t find your answer? Call{" "}
+              <a className="text-link" href={BUSINESS.phoneHref}>
+                {BUSINESS.phone}
+              </a>{" "}
+              or{" "}
+              <a className="text-link" href={`mailto:${BUSINESS.email}`}>
+                email our team
+              </a>
+              .
+            </p>
           </div>
           <div>
             {FAQS.map(([q, a]) => (

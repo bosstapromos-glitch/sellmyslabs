@@ -5,6 +5,10 @@ import {
   CONSIGNMENT_APPROVAL,
 } from "../../lib/consignment";
 import styles from "../components/Consignment.module.css";
+import JsonLd, {
+  breadcrumbSchema,
+  serviceSchema,
+} from "../components/JsonLd";
 export const metadata = {
   title: "Card & Sealed Product Consignment",
   description:
@@ -20,6 +24,19 @@ export const metadata = {
 export default function Page() {
   return (
     <>
+      <JsonLd
+        graph={[
+          breadcrumbSchema([
+            ["Home", "/"],
+            ["Consignment", "/consignment"],
+          ]),
+          serviceSchema({
+            name: "Trading card and sealed product consignment",
+            description: metadata.description,
+            path: "/consignment",
+          }),
+        ]}
+      />
       <Header />
       <main id="main" className={`wrap ${styles.page}`}>
         <span className="eyebrow">CONSIGN WITH US</span>
@@ -66,6 +83,13 @@ export default function Page() {
           <a className="plain-button" href="/sell">
             Get a direct offer
           </a>
+          <p>
+            Not sure which to choose?{" "}
+            <a className="text-link" href="/sell-or-consign-cards">
+              Compare selling directly with consigning
+            </a>
+            .
+          </p>
         </section>
       </main>
       <Footer />
