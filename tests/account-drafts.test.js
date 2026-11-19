@@ -73,6 +73,7 @@ test("account drafts: private photos, cross-device revisions, expiry, ownership,
         id,
         name: "Alice",
         email: "alice@example.com",
+        phone: "(208) 555-0100",
         cards: [
           {
             itemType: "Graded card",

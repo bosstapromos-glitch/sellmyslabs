@@ -17,7 +17,7 @@ const request = {
   id: "5affbb6e-d6f6-4bcc-8946-31df2ab5d059",
   name: "Test Seller",
   email: "test@example.com",
-  phone: "",
+  phone: "(208) 555-0100",
   notes: "",
   cards: [card],
   consent: true,

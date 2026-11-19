@@ -667,3 +667,29 @@
 .slots + .fieldError {
   margin-top: 8px;
 }
+.location {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 16px;
+}
+.marketing {
+  margin: 28px 0 0;
+  padding: 0;
+  border: 0;
+}
+.marketing .consent {
+  margin-top: 12px;
+}
+.marketing legend {
+  padding: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+@media (max-width: 600px) {
+  .location {
+    grid-template-columns: 1fr 1fr;
+  }
+  .location > :first-child {
+    grid-column: 1 / -1;
+  }
+}

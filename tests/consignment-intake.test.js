@@ -22,6 +22,7 @@ test("sale preference survives drafts; legacy requests stay direct and unsupport
     id: randomUUID(),
     name: "Test Seller",
     email: "test@example.com",
+    phone: "(208) 555-0100",
     consent: true,
     cards: [
       {
@@ -98,6 +99,7 @@ test("real submission handlers preserve direct and consignment choices for guest
           saleMethod,
           name: "Test Seller",
           email: "test@example.com",
+          phone: "(208) 555-0100",
           consent: true,
           cards: [
             {

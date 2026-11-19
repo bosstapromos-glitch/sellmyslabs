@@ -1,4 +1,5 @@
 "use client";
+import { BUSINESS } from "../../lib/site";
 import { useEffect, useRef, useState } from "react";
 import { GRADERS, CATEGORIES, ITEM_TYPES, itemDetails } from "../../lib/site";
 import { submissionSchema } from "../../lib/validation";
@@ -1123,18 +1124,69 @@ export default function SellForm() {
               <Field
                 id="phone"
                 label="Phone number"
-                optional
+                hint="For quick questions about your items. Include your area code."
                 error={errors.phone}
               >
                 <input
-                  {...props("phone")}
+                  {...props("phone", true)}
+                  required
                   type="tel"
+                  inputMode="tel"
                   autoComplete="tel"
                   maxLength={40}
                   value={draft.phone}
                   onChange={(e) => update("phone", e.target.value)}
+                  placeholder="(208) 555-0100"
                 />
               </Field>
+              <Field
+                id="contactMethod"
+                label="Best way to reach you"
+                error={errors.contactMethod}
+              >
+                <select
+                  {...props("contactMethod")}
+                  value={draft.contactMethod}
+                  onChange={(e) => update("contactMethod", e.target.value)}
+                >
+                  <option value="email">Email</option>
+                  <option value="phone">Phone call</option>
+                  <option value="text">Text message</option>
+                </select>
+              </Field>
+              <div className={styles.location}>
+                <Field id="city" label="City" error={errors.city}>
+                  <input
+                    {...props("city")}
+                    required
+                    autoComplete="address-level2"
+                    maxLength={80}
+                    value={draft.city}
+                    onChange={(e) => update("city", e.target.value)}
+                  />
+                </Field>
+                <Field id="state" label="State" error={errors.state}>
+                  <input
+                    {...props("state")}
+                    required
+                    autoComplete="address-level1"
+                    maxLength={40}
+                    value={draft.state}
+                    onChange={(e) => update("state", e.target.value)}
+                  />
+                </Field>
+                <Field id="zip" label="ZIP code" error={errors.zip}>
+                  <input
+                    {...props("zip")}
+                    required
+                    inputMode="text"
+                    autoComplete="postal-code"
+                    maxLength={12}
+                    value={draft.zip}
+                    onChange={(e) => update("zip", e.target.value)}
+                  />
+                </Field>
+              </div>
               <Field
                 id="notes"
                 label="Anything else we should know?"
@@ -1213,6 +1265,20 @@ export default function SellForm() {
                   <strong>{draft.name}</strong>
                   <span>{draft.email}</span>
                   {draft.phone && <span>{draft.phone}</span>}
+                  {(draft.city || draft.state || draft.zip) && (
+                    <span>
+                      {[draft.city, draft.state].filter(Boolean).join(", ")}{" "}
+                      {draft.zip}
+                    </span>
+                  )}
+                  <span>
+                    Prefers{" "}
+                    {draft.contactMethod === "phone"
+                      ? "a phone call"
+                      : draft.contactMethod === "text"
+                        ? "a text message"
+                        : "email"}
+                  </span>
                 </p>
                 {draft.notes && <p className={styles.notes}>{draft.notes}</p>}
               </section>
@@ -1243,6 +1309,38 @@ export default function SellForm() {
                   {errors.consent}
                 </p>
               )}
+              <fieldset className={styles.marketing}>
+                <legend>
+                  Stay in the loop
+                  <span className={styles.optional}> Optional</span>
+                </legend>
+                <label className={styles.consent}>
+                  <input
+                    type="checkbox"
+                    name="marketingEmail"
+                    checked={draft.marketingEmail}
+                    onChange={(e) => update("marketingEmail", e.target.checked)}
+                  />
+                  <span>
+                    Email me buying news and offers from {BUSINESS.name}. I can
+                    unsubscribe at any time.
+                  </span>
+                </label>
+                <label className={styles.consent}>
+                  <input
+                    type="checkbox"
+                    name="marketingText"
+                    checked={draft.marketingText}
+                    onChange={(e) => update("marketingText", e.target.checked)}
+                  />
+                  <span>
+                    Text me buying news and offers from {BUSINESS.name} at the
+                    number above. Message and data rates may apply. Message
+                    frequency varies. Reply STOP to opt out. Consent is not a
+                    condition of selling.
+                  </span>
+                </label>
+              </fieldset>
               <p className={styles.hint}>
                 {consignment
                   ? "This is a consignment request, not permission to list or sell your items. We’ll send your arrangement and buyer offers to your account for approval before proceeding."

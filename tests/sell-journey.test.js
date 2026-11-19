@@ -18,6 +18,10 @@ const draft = {
   id: "5affbb6e-d6f6-4bcc-8946-31df2ab5d059",
   name: "Test Seller",
   email: "test@example.com",
+  phone: "(208) 555-0100",
+  city: "Twin Falls",
+  state: "ID",
+  zip: "83301",
   cards: [slab],
   consent: true,
 };

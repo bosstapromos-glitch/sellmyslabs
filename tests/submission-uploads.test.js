@@ -113,7 +113,7 @@ test("100 separate private uploads resolve in order, persist together, reject st
           id,
           name: "Upload QA",
           email: "test@example.com",
-          phone: "",
+          phone: "(208) 555-0100",
           notes: "",
           consent: true,
           website: "",

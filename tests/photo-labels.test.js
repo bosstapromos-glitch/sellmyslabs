@@ -110,7 +110,7 @@ test("the submission stores each photo's item and side, refuses a graded card wi
       const body = new FormData();
       body.set(
         "data",
-        JSON.stringify({ id: requestId, name: "Label QA", email: "test@example.com", phone: "", notes: "", consent: true, website: "", cards: [slab, sealed] }),
+        JSON.stringify({ id: requestId, name: "Label QA", email: "test@example.com", phone: "(208) 555-0100", notes: "", consent: true, website: "", cards: [slab, sealed] }),
       );
       body.set("uploads", JSON.stringify(tokens));
       if (labels) body.set("labels", JSON.stringify(labels));

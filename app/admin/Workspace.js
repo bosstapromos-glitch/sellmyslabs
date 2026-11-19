@@ -19,6 +19,39 @@ import SlabResearch from "./SlabResearch";
 import { itemDetails } from "../../lib/site";
 import { STATUSES } from "../../lib/validation";
 import { normalizeOfferPrice, OFFER_PRICE_ERROR } from "../../lib/offer-price";
+const when = (value) =>
+  new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+function SellerDetails({ details }) {
+  if (!details) return null;
+  const place = [details.city, details.state].filter(Boolean).join(", ");
+  const prefers = { phone: "a phone call", text: "a text message" }[
+    details.contactMethod
+  ];
+  const optIns = [
+    details.marketingEmailAt &&
+      `email (opted in ${when(details.marketingEmailAt)})`,
+    details.marketingTextAt &&
+      `text (opted in ${when(details.marketingTextAt)})`,
+  ].filter(Boolean);
+  if (!place && !details.zip && !details.contactMethod) return null;
+  return (
+    <p className="hint">
+      {(place || details.zip) && (
+        <>
+          {place} {details.zip}
+          <br />
+        </>
+      )}
+      Prefers {prefers || "email"}
+      <br />
+      Marketing: {optIns.length ? optIns.join(", ") : "not opted in"}
+    </p>
+  );
+}
 export default function Workspace({ authenticated }) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -516,6 +549,7 @@ export default function Workspace({ authenticated }) {
                     </>
                   )}
                 </p>
+                <SellerDetails details={selected.seller_details} />
                 <p className="hint">
                   Received {new Date(selected.created_at).toLocaleString()}
                 </p>

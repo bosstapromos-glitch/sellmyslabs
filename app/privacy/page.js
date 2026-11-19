@@ -37,7 +37,8 @@ export default function Page() {
         </p>
         <h2>What we collect</h2>
         <p>
-          We collect the name, email, optional phone number, card and product
+          We collect the name, email, phone number, city, state and ZIP code,
+          preferred contact method, card and product
           details, asking prices, your choice of direct sale or consignment,
           notes and photos you submit. The website also uses limited request
           information to protect forms against abuse. If you accept an offer
@@ -58,7 +59,10 @@ export default function Page() {
           request, and manage a potential purchase or consignment. For
           consignment, we confirm listing arrangements before sharing item
           descriptions and photos with prospective buyers in-store or on eBay.
-          Sending a request is not a subscription to marketing messages.
+          Sending a request is not a subscription to marketing messages. If
+          you tick a marketing box on the request form, we use your email
+          address or phone number to send shop news and offers until you opt
+          out, and we record when you opted in.
         </p>
         <h2>Where it goes</h2>
         <p>
