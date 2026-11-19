@@ -1,0 +1,118 @@
+.page {
+  max-width: 820px;
+  padding-block: 40px 72px;
+}
+.page h1 {
+  font-size: clamp(34px, 5vw, 52px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  margin-bottom: 20px;
+}
+.page h2 {
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+}
+.crumbs {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+.crumbs a {
+  color: var(--blue-ink);
+}
+.lead {
+  font-size: 19px;
+  line-height: 1.6;
+  max-width: 640px;
+}
+.section {
+  margin-top: 44px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+.section p,
+.section li {
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 680px;
+}
+.section ul,
+.section ol {
+  margin: 0 0 16px;
+  padding-left: 22px;
+}
+.section li + li {
+  margin-top: 8px;
+}
+.section details:first-of-type {
+  border-top: 1px solid var(--line);
+}
+.contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+.contact a {
+  color: var(--blue-ink);
+  font-weight: 600;
+}
+.cta {
+  margin-top: 56px;
+  padding: 44px 32px;
+  border-radius: var(--radius-feature);
+  background: var(--wash);
+  text-align: center;
+}
+.cta h2 {
+  font-size: clamp(26px, 4vw, 34px);
+  letter-spacing: -0.03em;
+}
+.more {
+  display: block;
+  margin-top: 48px;
+  font-size: 15px;
+}
+.more h2 {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.more ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.more a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--blue-ink);
+  font-weight: 600;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.more a:hover {
+  background: var(--sky);
+  border-color: #cbdff6;
+  text-decoration: none;
+}
+@media (max-width: 700px) {
+  .page {
+    padding-block: 28px 56px;
+  }
+  .cta {
+    padding: 36px 20px;
+  }
+}

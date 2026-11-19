@@ -39,6 +39,12 @@ function Cards({ reviews }) {
     </div>
   );
 }
+const FEATURED = 4;
+// Lead with the most descriptive written reviews; the rest stay newest first.
+const featured = [...snapshot.reviews]
+  .sort((a, b) => (b.text || "").length - (a.text || "").length)
+  .slice(0, FEATURED);
+const remaining = snapshot.reviews.filter((r) => !featured.includes(r));
 export default function GoogleReviews() {
   return (
     <section
@@ -64,16 +70,16 @@ export default function GoogleReviews() {
       </div>
       <p className="hint">
         {snapshot.reviews.length} Google reviews collected{" "}
-        {date(snapshot.fetchedAt)}, newest first. Excerpts shown; visit Google
+        {date(snapshot.fetchedAt)}. Featured excerpts shown first; visit Google
         for the latest reviews.
       </p>
-      <Cards reviews={snapshot.reviews.slice(0, 4)} />
+      <Cards reviews={featured} />
       <details className="more-reviews">
         <summary>
           Show all {snapshot.reviews.length} reviews
           <span aria-hidden="true">+</span>
         </summary>
-        <Cards reviews={snapshot.reviews.slice(4)} />
+        <Cards reviews={remaining} />
       </details>
     </section>
   );

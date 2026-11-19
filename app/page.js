@@ -1,10 +1,11 @@
 import Image from "next/image";
 import GoogleReviews from "./components/GoogleReviews";
 import InspectionNotice from "./components/InspectionNotice";
+import JsonLd, { faqSchema } from "./components/JsonLd";
+import snapshot from "../lib/google-reviews.json";
+import { SELL_GUIDES } from "../lib/sell-guides";
 export const metadata = { alternates: { canonical: "/" } };
-const businessData = {
-  "@context": "https://schema.org",
-  "@graph": [
+const businessGraph = [
     {
       "@type": "WebSite",
       "@id": "https://www.sellmyslabs.net/#website",
@@ -33,33 +34,30 @@ const businessData = {
       },
       sameAs: ["https://share.google/e0YnqDkZi036YkURF"],
     },
-  ],
-};
+];
 import { Header, Footer } from "./components/Shell";
 import Icon from "./components/Icon";
 import { BUSINESS, GRADERS, FAQS } from "../lib/site";
+const fiveStar = snapshot.reviews.filter((r) => r.rating === 5).length;
 export default function Home() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(businessData).replace(/</g, "\\u003c"),
-        }}
-      />
+      <JsonLd graph={[...businessGraph, faqSchema(FAQS)]} />
       <Header />
       <main id="main">
         <section className="hero wrap">
           <div className="hero-copy">
-            <span className="eyebrow">LIFESTYLE CARDS & COLLECTIBLES</span>
             <h1>
+              <span className="h1-kicker">
+                Sell graded cards, Pokémon, sports cards &amp; sealed products
+              </span>
               Great cards.
               <br />
               <span>A simpler sale.</span>
             </h1>
             <p className="lead">
-              Sell graded cards, raw cards and sealed products. Get a personal
-              offer from our team in Twin Falls, Idaho.
+              Get a personal offer from the team at {BUSINESS.name}, a real
+              card shop in Twin Falls, Idaho.
             </p>
             <div className="actions">
               <a className="button" href="/sell">
@@ -70,7 +68,6 @@ export default function Home() {
               </a>
             </div>
             <p className="micro">No obligation to sell.</p>
-            <InspectionNotice />
             <div className="accepted">
               <span>GRADED CARDS WE ACCEPT</span>
               <div>
@@ -94,33 +91,49 @@ export default function Home() {
             </figcaption>
           </figure>
         </section>
-        <div className="trust-strip">
-          <div className="wrap">
-            <span>
-              <Icon name="shop" />A real shop in Twin Falls, Idaho
-            </span>
-            <a href={BUSINESS.google} target="_blank" rel="noreferrer">
-              <Icon name="star" />
-              Meet us on Google
-            </a>
-            <span>
-              <Icon name="chat" />
-              Personal offers. Human support.
-            </span>
-          </div>
-        </div>
-        <section className="section wrap" aria-labelledby="consignment-heading">
+        <section className="proof" aria-label="What to expect">
+          <dl className="wrap">
+            <div>
+              <dt>24 hours</dt>
+              <dd>Typical reply with an offer or an update</dd>
+            </div>
+            <div>
+              <dt>Same day</dt>
+              <dd>Payment initiated once inspection confirms your items</dd>
+            </div>
+            <div>
+              <dt>{fiveStar} five-star</dt>
+              <dd>
+                <a href={BUSINESS.google} target="_blank" rel="noreferrer">
+                  Google ratings for our shop
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt>No obligation</dt>
+              <dd>You decide whether the offer works for you</dd>
+            </div>
+          </dl>
+        </section>
+        <section className="section wrap" aria-labelledby="buy-heading">
           <div className="section-heading">
-            <h2 id="consignment-heading">Prefer to consign?</h2>
+            <h2 id="buy-heading">What we buy.</h2>
             <p>
-              We can offer your graded cards, raw cards and sealed products
-              in-store and on eBay. Set a target price and review buyer offers
-              before accepting a sale.
+              Single cards or whole collections. Choose a category to see what
+              to send us.
             </p>
           </div>
-          <a className="button secondary" href="/consignment">
-            Explore consignment
-          </a>
+          <ul className="buy-grid">
+            {SELL_GUIDES.map((guide) => (
+              <li key={guide.slug}>
+                <a href={`/${guide.slug}`}>
+                  <strong>{guide.label}</strong>
+                  <span>{guide.blurb}</span>
+                  <em aria-hidden="true">→</em>
+                </a>
+              </li>
+            ))}
+          </ul>
         </section>
         <section className="section wrap" id="how-it-works">
           <div className="section-heading">
@@ -157,10 +170,39 @@ export default function Home() {
               </article>
             ))}
           </div>
+          <InspectionNotice />
           <div className="center">
             <a className="button" href="/sell">
               Request an offer
             </a>
+          </div>
+        </section>
+        <section className="consign-band" aria-labelledby="consignment-heading">
+          <div className="wrap consign-grid">
+            <div>
+              <h2 id="consignment-heading">Prefer to consign?</h2>
+              <p className="lead">
+                We can offer your graded cards, raw cards and sealed products
+                in-store and on eBay.
+              </p>
+              <a className="button secondary" href="/consignment">
+                Explore consignment
+              </a>
+            </div>
+            <ul className="consign-points">
+              <li>
+                <strong>Your price</strong>
+                <span>Set a target price for each item.</span>
+              </li>
+              <li>
+                <strong>Two places to sell</strong>
+                <span>Offered in our store and on eBay.</span>
+              </li>
+              <li>
+                <strong>Your approval</strong>
+                <span>Review buyer offers before accepting a sale.</span>
+              </li>
+            </ul>
           </div>
         </section>
         <section className="shop-section" id="our-shop">
@@ -202,6 +244,17 @@ export default function Home() {
         <section className="section wrap faq-grid" id="faq">
           <div>
             <h2>Questions before you sell?</h2>
+            <p>
+              Can’t find your answer? Call{" "}
+              <a className="text-link" href={BUSINESS.phoneHref}>
+                {BUSINESS.phone}
+              </a>{" "}
+              or{" "}
+              <a className="text-link" href={`mailto:${BUSINESS.email}`}>
+                email our team
+              </a>
+              .
+            </p>
           </div>
           <div>
             {FAQS.map(([q, a]) => (
