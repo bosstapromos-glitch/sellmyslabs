@@ -39,6 +39,32 @@ import { Header, Footer } from "./components/Shell";
 import Icon from "./components/Icon";
 import { BUSINESS, FAQS } from "../lib/site";
 import GraderLogos from "./components/GraderLogos";
+const HERO_SLABS = [
+  {
+    src: "/images/slabs/psa-luffy.jpg",
+    alt: "PSA 10 Monkey D. Luffy manga alternate art One Piece card in its slab",
+    width: 442,
+    height: 744,
+  },
+  {
+    src: "/images/slabs/tag-magikarp.jpg",
+    alt: "TAG 10 Magikarp art rare Pokémon card in its slab",
+    width: 606,
+    height: 1000,
+  },
+  {
+    src: "/images/slabs/cgc-pikachu.jpg",
+    alt: "CGC 9.5 Pikachu with Grey Felt Hat Pokémon card in its slab",
+    width: 747,
+    height: 1200,
+  },
+  {
+    src: "/images/slabs/bgs-ohtani.jpg",
+    alt: "Beckett 9 Shohei Ohtani Topps baseball card in its slab",
+    width: 640,
+    height: 1001,
+  },
+];
 const fiveStar = snapshot.reviews.filter((r) => r.rating === 5).length;
 export default function Home() {
   return (
@@ -74,18 +100,22 @@ export default function Home() {
               <GraderLogos />
             </div>
           </div>
-          <figure className="hero-art">
-            <Image
-              src="/images/tag-charizard.jpg"
-              alt="Real TAG graded Charizard ex card in its clear protective slab"
-              width={1912}
-              height={3400}
-              sizes="(max-width: 700px) 80vw, 460px"
-              priority
-            />
-            <figcaption>
-              <span>Real cards. Real potential.</span>
-            </figcaption>
+          <figure className="hero-fan">
+            <ul>
+              {HERO_SLABS.map((slab, index) => (
+                <li key={slab.src}>
+                  <Image
+                    src={slab.src}
+                    alt={slab.alt}
+                    width={slab.width}
+                    height={slab.height}
+                    sizes="(max-width: 700px) 34vw, 190px"
+                    priority={index < 2}
+                  />
+                </li>
+              ))}
+            </ul>
+            <figcaption>Graded by PSA, TAG, CGC and Beckett.</figcaption>
           </figure>
         </section>
         <section className="proof" aria-label="What to expect">

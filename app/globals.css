@@ -2138,3 +2138,85 @@ h1 .h1-kicker {
     height: auto;
   }
 }
+
+/* Hero: four slabs fanned on a light stage. */
+.hero-fan {
+  --slab-h: clamp(170px, 19.5vw, 268px);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 52px;
+  min-height: 560px;
+  padding: 56px 12px 30px;
+  border-radius: var(--radius-feature);
+  background: linear-gradient(180deg, var(--wash) 0%, var(--sky) 100%);
+  overflow: hidden;
+}
+.hero-fan ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+.hero-fan li {
+  flex: none;
+  margin-left: calc(var(--slab-h) * -0.34);
+  line-height: 0;
+  border-radius: calc(var(--slab-h) * 0.03);
+  overflow: hidden;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--r)) translateY(var(--y));
+  box-shadow:
+    0 26px 44px -20px rgba(11, 17, 26, 0.55),
+    0 2px 6px rgba(11, 17, 26, 0.18);
+  transition: transform 0.25s ease;
+}
+.hero-fan li:first-child {
+  margin-left: 0;
+}
+.hero-fan li:nth-child(1) {
+  --r: -11deg;
+  --y: 16px;
+}
+.hero-fan li:nth-child(2) {
+  --r: -4.5deg;
+  --y: -6px;
+}
+.hero-fan li:nth-child(3) {
+  --r: 4.5deg;
+  --y: -6px;
+}
+.hero-fan li:nth-child(4) {
+  --r: 11deg;
+  --y: 16px;
+}
+.hero-fan li:hover {
+  transform: rotate(var(--r)) translateY(calc(var(--y) - 12px));
+}
+.hero-fan img {
+  display: block;
+  height: var(--slab-h);
+  width: auto;
+}
+.hero-fan figcaption {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .hero-fan {
+    --slab-h: min(47vw, 300px);
+    min-height: 0;
+    gap: 40px;
+    padding: 44px 8px 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-fan li:hover {
+    transform: rotate(var(--r)) translateY(var(--y));
+  }
+}
