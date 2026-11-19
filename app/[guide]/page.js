@@ -7,6 +7,7 @@ import JsonLd, {
 } from "../components/JsonLd";
 import { BUSINESS } from "../../lib/site";
 import { SELL_GUIDES, SELL_PROCESS, sellGuide } from "../../lib/sell-guides";
+import GraderLogos from "../components/GraderLogos";
 import styles from "./Guide.module.css";
 
 export const dynamicParams = false;
@@ -73,6 +74,7 @@ export default async function Page({ params }) {
         {guide.sections.map((section) => (
           <section className={styles.section} key={section.heading}>
             <h2>{section.heading}</h2>
+            {section.graderLogos && <GraderLogos />}
             {section.text?.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}

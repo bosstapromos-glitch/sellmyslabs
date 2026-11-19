@@ -37,7 +37,8 @@ const businessGraph = [
 ];
 import { Header, Footer } from "./components/Shell";
 import Icon from "./components/Icon";
-import { BUSINESS, GRADERS, FAQS } from "../lib/site";
+import { BUSINESS, FAQS } from "../lib/site";
+import GraderLogos from "./components/GraderLogos";
 const fiveStar = snapshot.reviews.filter((r) => r.rating === 5).length;
 export default function Home() {
   return (
@@ -70,11 +71,7 @@ export default function Home() {
             <p className="micro">No obligation to sell.</p>
             <div className="accepted">
               <span>GRADED CARDS WE ACCEPT</span>
-              <div>
-                {GRADERS.map((g) => (
-                  <strong key={g}>{g}</strong>
-                ))}
-              </div>
+              <GraderLogos />
             </div>
           </div>
           <figure className="hero-art">

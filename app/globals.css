@@ -2093,3 +2093,23 @@ h1 .h1-kicker {
     transform: none;
   }
 }
+.grader-logos {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 34px;
+}
+.grader-logos li {
+  display: flex;
+}
+.grader-logos img {
+  display: block;
+  opacity: 0.88;
+}
+
+.grader-logos + p {
+  margin-top: 20px;
+}
