@@ -1991,7 +1991,11 @@ h1 .h1-kicker {
   align-items: center;
 }
 .consign-grid .lead {
-  margin-bottom: 28px;
+  margin-bottom: 0;
+}
+.consign-grid .actions {
+  flex-wrap: wrap;
+  gap: 16px 25px;
 }
 .consign-points {
   list-style: none;
@@ -2018,9 +2022,6 @@ h1 .h1-kicker {
   color: var(--muted);
   font-size: 15px;
   line-height: 1.5;
-}
-#how-it-works aside {
-  margin-top: 28px;
 }
 .faq-grid > div:first-child p {
   max-width: 340px;

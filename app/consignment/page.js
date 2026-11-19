@@ -83,6 +83,13 @@ export default function Page() {
           <a className="plain-button" href="/sell">
             Get a direct offer
           </a>
+          <p>
+            Not sure which to choose?{" "}
+            <a className="text-link" href="/sell-or-consign-cards">
+              Compare selling directly with consigning
+            </a>
+            .
+          </p>
         </section>
       </main>
       <Footer />

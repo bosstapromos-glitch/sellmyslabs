@@ -91,17 +91,19 @@ export default async function Page({ params }) {
           </section>
         ))}
 
-        <section className={styles.section}>
-          <h2>{SELL_PROCESS.heading}</h2>
-          <ol>
-            {SELL_PROCESS.steps.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ol>
-          <a className="text-link" href="/purchase-terms">
-            Read the purchase terms
-          </a>
-        </section>
+        {!guide.comparison && (
+          <section className={styles.section}>
+            <h2>{SELL_PROCESS.heading}</h2>
+            <ol>
+              {SELL_PROCESS.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+            <a className="text-link" href="/purchase-terms">
+              Read the purchase terms
+            </a>
+          </section>
+        )}
 
         {guide.showShop && (
           <section className={styles.section}>

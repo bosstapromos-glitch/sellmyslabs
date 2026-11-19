@@ -3,7 +3,7 @@ import GoogleReviews from "./components/GoogleReviews";
 import InspectionNotice from "./components/InspectionNotice";
 import JsonLd, { faqSchema } from "./components/JsonLd";
 import snapshot from "../lib/google-reviews.json";
-import { SELL_GUIDES } from "../lib/sell-guides";
+import { BUY_GUIDES } from "../lib/sell-guides";
 export const metadata = { alternates: { canonical: "/" } };
 const businessGraph = [
     {
@@ -124,7 +124,7 @@ export default function Home() {
             </p>
           </div>
           <ul className="buy-grid">
-            {SELL_GUIDES.map((guide) => (
+            {BUY_GUIDES.map((guide) => (
               <li key={guide.slug}>
                 <a href={`/${guide.slug}`}>
                   <strong>{guide.label}</strong>
@@ -185,9 +185,14 @@ export default function Home() {
                 We can offer your graded cards, raw cards and sealed products
                 in-store and on eBay.
               </p>
-              <a className="button secondary" href="/consignment">
-                Explore consignment
-              </a>
+              <div className="actions">
+                <a className="button secondary" href="/consignment">
+                  Explore consignment
+                </a>
+                <a className="text-link" href="/sell-or-consign-cards">
+                  Sell or consign?
+                </a>
+              </div>
             </div>
             <ul className="consign-points">
               <li>
