@@ -2113,3 +2113,17 @@ h1 .h1-kicker {
 .grader-logos + p {
   margin-top: 20px;
 }
+@media (max-width: 540px) {
+  .grader-logos {
+    flex-wrap: nowrap;
+    gap: 16px;
+  }
+  .grader-logos li {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  .grader-logos img {
+    max-width: 100%;
+    height: auto;
+  }
+}
