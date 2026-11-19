@@ -76,15 +76,14 @@ export default function Home() {
           <div className="hero-copy">
             <h1>
               <span className="h1-kicker">
-                Sell graded cards, Pokémon, sports cards &amp; sealed products
+                Sell graded cards, Pokémon &amp; sports cards
               </span>
               Great cards.
               <br />
               <span>A simpler sale.</span>
             </h1>
             <p className="lead">
-              Get a personal offer from the team at {BUSINESS.name}, a real
-              card shop in Twin Falls, Idaho.
+              Personal offers from a real card shop in Twin Falls, Idaho.
             </p>
             <div className="actions">
               <a className="button" href="/sell">
@@ -94,7 +93,6 @@ export default function Home() {
                 See how it works
               </a>
             </div>
-            <p className="micro">No obligation to sell.</p>
             <div className="accepted">
               <span>GRADED CARDS WE ACCEPT</span>
               <GraderLogos />
@@ -115,7 +113,6 @@ export default function Home() {
                 </li>
               ))}
             </ul>
-            <figcaption>Graded by PSA, TAG, CGC and Beckett.</figcaption>
           </figure>
         </section>
         <section className="proof" aria-label="What to expect">
