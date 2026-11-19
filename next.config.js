@@ -3,6 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   turbopack: { root: __dirname },
   outputFileTracingRoot: __dirname,
+  async rewrites() {
+    return [{ source: "/pokemon-cards", destination: "/pokemon-cards/index.html" }];
+  },
   async headers() {
     return [
       {
