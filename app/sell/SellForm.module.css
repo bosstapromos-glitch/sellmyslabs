@@ -614,3 +614,56 @@
     grid-template-columns: 1fr;
   }
 }
+.itemPhotos {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.itemPhotosLabel {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+.slots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.slot {
+  min-width: 0;
+}
+.slotImage {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--control-line);
+  border-radius: 10px;
+  background: var(--wash);
+  color: var(--muted);
+  font-size: 14px;
+  overflow: hidden;
+}
+.slotImage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.slotActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 14px;
+  font-size: 14px;
+}
+.slotActions strong {
+  margin-right: auto;
+}
+.slotActions :global(.plain-button) {
+  padding-inline: 0;
+  min-height: 44px;
+}
+.slots + .fieldError {
+  margin-top: 8px;
+}

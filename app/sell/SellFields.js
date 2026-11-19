@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import styles from "./SellForm.module.css";
 import PhotoPager, { PHOTO_PAGE_SIZE } from "../components/PhotoPager";
 import { photoPreview } from "../../lib/prepare-photo";
+import { PHOTO_SIDES, labelText, slotPhoto } from "../../lib/photo-labels";
 
 export function Field({
   id,
@@ -33,9 +34,13 @@ export function Field({
   );
 }
 
-function Photo({ file, index, onRemove, disabled }) {
+function usePhotoUrl(file) {
   const [url, setUrl] = useState("");
   useEffect(() => {
+    if (!file) {
+      setUrl("");
+      return;
+    }
     if (file.previewUrl) {
       setUrl(file.previewUrl);
       return;
@@ -44,6 +49,104 @@ function Photo({ file, index, onRemove, disabled }) {
     setUrl(next);
     return () => URL.revokeObjectURL(next);
   }, [file]);
+  return url;
+}
+
+function Slot({ index, side, file, disabled, name, onAdd, onRemove }) {
+  const url = usePhotoUrl(file);
+  const title = side === "front" ? "Front" : "Back";
+  return (
+    <div className={styles.slot}>
+      <div className={styles.slotImage}>
+        {url ? (
+          <img
+            src={url}
+            alt={`${title} of item ${index + 1}`}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <span aria-hidden="true">{title}</span>
+        )}
+      </div>
+      <div className={styles.slotActions}>
+        <strong>{title}</strong>
+        <button
+          type="button"
+          className="plain-button"
+          name={name}
+          disabled={disabled}
+          onClick={() => onAdd(side)}
+        >
+          {file ? "Replace" : `Add ${side} photo`}
+        </button>
+        {file && (
+          <button
+            type="button"
+            className="plain-button"
+            disabled={disabled}
+            aria-label={`Remove ${side} photo of item ${index + 1}`}
+            onClick={() => onRemove(file)}
+          >
+            Remove
+          </button>
+        )}
+      </div>
+      {!!file?.warnings?.length && (
+        <p className={styles.photoWarning}>{file.warnings.join(" ")}</p>
+      )}
+    </div>
+  );
+}
+
+// Front and back photo slots for one item.
+export function ItemPhotos({
+  index,
+  photos,
+  required,
+  error,
+  disabled,
+  onAdd,
+  onRemove,
+}) {
+  const id = `item-${index}-photos`;
+  return (
+    <div
+      className={styles.itemPhotos}
+      role="group"
+      aria-labelledby={`${id}-label`}
+      aria-describedby={error ? `${id}-error` : undefined}
+    >
+      <p id={`${id}-label`} className={styles.itemPhotosLabel}>
+        Photos of this item
+        {!required && <span className={styles.optional}> Optional</span>}
+      </p>
+      <div className={styles.slots}>
+        {PHOTO_SIDES.map((side, position) => (
+          <Slot
+            key={side}
+            index={index}
+            side={side}
+            file={slotPhoto(photos, index, side)}
+            disabled={disabled}
+            name={position === 0 ? id : undefined}
+            onAdd={(chosen) => onAdd(index, chosen)}
+            onRemove={onRemove}
+          />
+        ))}
+      </div>
+      {error && (
+        <p id={`${id}-error`} className={styles.fieldError}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Photo({ file, index, onRemove, disabled }) {
+  const url = usePhotoUrl(file);
+  const label = labelText(file);
   return (
     <li>
       <div className={styles.photoImage}>
@@ -57,7 +160,7 @@ function Photo({ file, index, onRemove, disabled }) {
         )}
       </div>
       <div className={styles.photoCaption}>
-        <span>Photo {index + 1}</span>
+        <span>{label || `Photo ${index + 1}`}</span>
         {onRemove && (
           <button
             type="button"

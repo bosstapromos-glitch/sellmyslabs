@@ -1,4 +1,5 @@
 "use client";
+import { labelText } from "../../lib/photo-labels";
 import { useEffect, useRef, useState } from "react";
 
 import PhotoPager, { PHOTO_PAGE_SIZE } from "../components/PhotoPager";
@@ -149,7 +150,7 @@ function PhotoViewer({
   );
 }
 
-export default function PhotoReview({ id, photos }) {
+export default function PhotoReview({ id, photos, cards }) {
   const [selected, setSelected] = useState(null);
   const [page, setPage] = useState(0);
   const current = Math.min(
@@ -195,7 +196,17 @@ export default function PhotoReview({ id, photos }) {
                   <span>Enlarge photo</span>
                 </button>
                 <div className="owner-photo-caption">
-                  <strong>Photo {i + 1}</strong>
+                  <strong>
+                    {labelText(photo) || `Photo ${i + 1}`}
+                    {photo.item !== null &&
+                      photo.item !== undefined &&
+                      cards?.[photo.item]?.name && (
+                        <span className="hint">
+                          {" "}
+                          {cards[photo.item].name}
+                        </span>
+                      )}
+                  </strong>
                   <a
                     className="text-link"
                     href={source(photo.index)}

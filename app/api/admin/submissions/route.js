@@ -1,3 +1,4 @@
+import { cleanLabel } from "../../../../lib/photo-labels";
 import {
   canSetPurchaseResponseStatus,
   PURCHASE_RESPONSE_STATUSES,
@@ -50,7 +51,11 @@ export async function GET(request) {
               ...offer,
               url: purchasePath(offer.id),
             })),
-            photos: row.photos.map((p, i) => ({ index: i, type: p.type })),
+            photos: row.photos.map((p, i) => ({
+              index: i,
+              type: p.type,
+              ...cleanLabel(p, row.cards.length),
+            })),
           },
         },
         { headers: { "Cache-Control": "no-store" } },

@@ -556,6 +556,7 @@ export default function Workspace({ authenticated }) {
                   key={selected.id}
                   id={selected.id}
                   photos={selected.photos}
+                  cards={selected.cards}
                 />
                 <SlabResearch cards={selected.cards} />
               </div>

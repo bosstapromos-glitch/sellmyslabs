@@ -3,10 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import { requestJSON } from "../../lib/request-json";
 import { clearDraftPhotos } from "../../lib/draft-photos";
 import { DRAFT_KEY, hasDraftContent } from "../../lib/draft";
+import { cleanLabel } from "../../lib/photo-labels";
 
 const snapshot = (draft, photos) => ({
   data: { ...draft, consent: false },
-  photos: photos.map(({ token, name }) => ({ token, name })),
+  photos: photos.map((photo) => ({
+    token: photo.token,
+    name: photo.name,
+    ...cleanLabel(photo),
+  })),
 });
 export default function useAccountDraft({
   draft,

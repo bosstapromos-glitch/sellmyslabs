@@ -6,6 +6,7 @@ import { stepErrors } from "../../lib/sell-validation";
 import {
   loadDraftPhotos,
   saveDraftPhoto,
+  saveDraftPhotos,
   removeDraftPhoto,
   clearDraftPhotos,
 } from "../../lib/draft-photos";
@@ -20,7 +21,12 @@ import {
 } from "../../lib/draft";
 import { requestJSON } from "../../lib/request-json";
 import useUnsavedChanges from "../components/useUnsavedChanges";
-import { Field, PhotoList } from "./SellFields";
+import { Field, PhotoList, ItemPhotos } from "./SellFields";
+import {
+  labelsOf,
+  relabelAfterRemoval,
+  unlabelAll,
+} from "../../lib/photo-labels";
 import styles from "./SellForm.module.css";
 import useAccountDraft from "./useAccountDraft";
 import AccountDraftStatus from "./AccountDraftStatus";
@@ -75,6 +81,8 @@ export default function SellForm() {
   const focusInvalid = useRef(false);
   const files = useRef(null);
   const camera = useRef(null);
+  const slotInput = useRef(null);
+  const slotTarget = useRef(null);
   const account = useAccountDraft({
     draft,
     photos,
@@ -241,7 +249,7 @@ export default function SellForm() {
     requestAnimationFrame(() => heading.current?.focus());
   }
   function validate(stage) {
-    const next = stepErrors(draft, photos.length, stage);
+    const next = stepErrors(draft, photos.length, stage, photos);
     if (!Object.keys(next).length) return true;
     focusInvalid.current = true;
     setStep(stage);
@@ -262,7 +270,9 @@ export default function SellForm() {
           .join(" ") || undefined,
     };
   }
-  async function choosePhotos(event) {
+  // `label` attaches the chosen photo to one side of one item; without it the
+  // photos are general photos for the whole request.
+  async function choosePhotos(event, label = null) {
     const selected = Array.from(event.target.files || []);
     event.target.value = "";
     if (!selected.length || working || preparingLock.current) return;
@@ -270,36 +280,100 @@ export default function SellForm() {
     setPhotoProblems([]);
     preparingLock.current = true;
     setPreparing(true);
+    const replaced = label
+      ? photos.find((p) => p.item === label.item && p.side === label.side)
+      : null;
     try {
       const result = await prepareSelection(
-        selected,
-        MAX_SUBMISSION_PHOTOS - photos.length,
+        label ? selected.slice(0, 1) : selected,
+        label
+          ? 1
+          : MAX_SUBMISSION_PHOTOS - photos.length,
         (file) => uploadPhoto(file, draft.id),
-        async (photo) => {
+        async (uploaded) => {
+          const photo = label ? { ...uploaded, ...label } : uploaded;
           let persisted = false;
           try {
-            if (!account.active) await saveDraftPhoto(draft.id, photo);
+            if (!account.active) {
+              await saveDraftPhoto(draft.id, photo);
+              if (replaced?.persisted)
+                await removeDraftPhoto(draft.id, replaced.token);
+            }
             persisted = true;
             setPhotoStorageAvailable(true);
           } catch {
             setPhotoStorageAvailable(false);
           }
-          setPhotos((current) => [...current, { ...photo, persisted }]);
+          setPhotos((current) => [
+            ...current.filter((p) => p !== replaced),
+            { ...photo, persisted },
+          ]);
         },
         setPhotoProgress,
       );
-      if (result.added) clearError("photos");
+      if (result.added) {
+        clearError("photos");
+        if (label) clearError(`item-${label.item}-photos`);
+      }
       const messages = [...result.failures];
-      if (result.skipped)
+      if (result.skipped && !label)
         messages.push(
           `Your request has room for ${MAX_SUBMISSION_PHOTOS} photos. ${result.skipped} extra photo${result.skipped === 1 ? " was" : "s were"} not added. Use clear group photos for a larger collection.`,
         );
-      setPhotoProblems(messages);
+      if (label && messages.length)
+        setErrors((current) => ({
+          ...current,
+          [`item-${label.item}-photos`]: messages
+            .join(" ")
+            .replace(/^[^:]+: /, ""),
+        }));
+      else setPhotoProblems(messages);
     } finally {
       preparingLock.current = false;
       setPreparing(false);
       setPhotoProgress(null);
     }
+  }
+  function chooseSlotPhoto(item, side) {
+    if (working || preparingLock.current) return;
+    if (
+      photos.length >= MAX_SUBMISSION_PHOTOS &&
+      !photos.some((p) => p.item === item && p.side === side)
+    ) {
+      setErrors((current) => ({
+        ...current,
+        [`item-${item}-photos`]: `Your request has room for ${MAX_SUBMISSION_PHOTOS} photos. Remove one before adding another.`,
+      }));
+      return;
+    }
+    slotTarget.current = { item, side };
+    slotInput.current?.click();
+  }
+  async function removePhoto(photo) {
+    if (!photo || working || preparingLock.current) return;
+    preparingLock.current = true;
+    setSavingPhotos(true);
+    try {
+      if (!account.active && photo.persisted)
+        await removeDraftPhoto(draft.id, photo.token);
+      setPhotos((current) => current.filter((p) => p !== photo));
+    } catch {
+      setError("This saved photo couldn’t be removed. Please try again.");
+    } finally {
+      preparingLock.current = false;
+      setSavingPhotos(false);
+    }
+  }
+  // Keeps photo labels in step when the item list changes, here and in the
+  // browser's saved draft.
+  function relabelPhotos(change) {
+    const next = change(photos);
+    setPhotos(next);
+    if (!account.active)
+      saveDraftPhotos(
+        draft.id,
+        next.filter((photo, index) => photo !== photos[index] && photo.persisted),
+      ).catch(() => setPhotoStorageAvailable(false));
   }
   async function chooseCSV(event) {
     const file = event.target.files?.[0];
@@ -310,6 +384,9 @@ export default function SellForm() {
       if (file.size > 200000) throw Error("Please keep the CSV below 200 KB.");
       const items = importCards(await file.text());
       update("cards", items);
+      // Imported rows replace the item list, so earlier item photos no longer
+      // line up with an item. They stay attached as general photos.
+      relabelPhotos(unlabelAll);
       setExpandedItem(0);
       setErrors({});
     } catch (failure) {
@@ -340,6 +417,10 @@ export default function SellForm() {
       data.set("data", JSON.stringify(parsed.data));
       if (revision) data.set("draftVersion", String(revision));
       data.set("uploads", JSON.stringify(photos.map((photo) => photo.token)));
+      data.set(
+        "labels",
+        JSON.stringify(labelsOf(photos, parsed.data.cards.length)),
+      );
       const result = await requestJSON(
         "/api/submissions",
         { method: "POST", body: data },
@@ -561,6 +642,9 @@ export default function SellForm() {
                             update(
                               "cards",
                               draft.cards.filter((_, i) => i !== index),
+                            );
+                            relabelPhotos((list) =>
+                              relabelAfterRemoval(list, index),
                             );
                             setExpandedItem(Math.max(0, index - 1));
                             setErrors({});
@@ -794,6 +878,15 @@ export default function SellForm() {
                               </Field>
                             </div>
                           </details>
+                          <ItemPhotos
+                            index={index}
+                            photos={photos}
+                            required={c.itemType === "Graded card"}
+                            error={errors[key("photos")]}
+                            disabled={working}
+                            onAdd={chooseSlotPhoto}
+                            onRemove={removePhoto}
+                          />
                         </>
                       )}
                     </div>
@@ -852,14 +945,17 @@ export default function SellForm() {
                 aria-labelledby="photos-heading"
               >
                 <div className={styles.sectionHeading}>
-                  <h2 id="photos-heading">Photos</h2>
-                  <span className={styles.required}>At least 1 required</span>
+                  <h2 id="photos-heading">More photos</h2>
+                  <span className={styles.required}>
+                    Group shots and extra angles
+                  </span>
                 </div>
                 <p>
-                  Show the front and back of each card, or the packaging and
-                  seals. You can attach up to {MAX_SUBMISSION_PHOTOS} photos
-                  per request, so each slab can have its own photos. Photos
-                  upload privately as you add them.
+                  Each graded card needs its own front and back photo, added
+                  on the item above. Use this section for sealed product, raw
+                  card lots and anything else worth showing. You can attach up
+                  to {MAX_SUBMISSION_PHOTOS} photos per request. Photos upload
+                  privately as you add them.
                 </p>
                 <ul className={styles.photoTips} aria-label="Photo tips">
                   <li>
@@ -915,6 +1011,16 @@ export default function SellForm() {
                     accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
                     onChange={choosePhotos}
                   />
+                  <input
+                    ref={slotInput}
+                    hidden
+                    type="file"
+                    aria-label="Choose a photo for this item"
+                    accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+                    onChange={(event) =>
+                      choosePhotos(event, slotTarget.current)
+                    }
+                  />
                 </div>
                 {errors.photos && (
                   <p id="photos-error" className={styles.fieldError}>
@@ -947,25 +1053,7 @@ export default function SellForm() {
                   <PhotoList
                     photos={photos}
                     disabled={working}
-                    onRemove={async (index) => {
-                      if (working || preparingLock.current) return;
-                      preparingLock.current = true;
-                      setSavingPhotos(true);
-                      try {
-                        if (!account.active && photos[index].persisted)
-                          await removeDraftPhoto(draft.id, photos[index].token);
-                        setPhotos((current) =>
-                          current.filter((_, i) => i !== index),
-                        );
-                      } catch {
-                        setError(
-                          "This saved photo couldn’t be removed. Please try again.",
-                        );
-                      } finally {
-                        preparingLock.current = false;
-                        setSavingPhotos(false);
-                      }
-                    }}
+                    onRemove={(index) => removePhoto(photos[index])}
                   />
                 )}
               </section>
