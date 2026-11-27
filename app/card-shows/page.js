@@ -10,7 +10,7 @@ import styles from "./shows.module.css";
 
 const title = "Card Show Directory";
 const description =
-  "Find card shows by city, state or show name. Browse dates, venues and organizer links from the Lifestyle card-show directory.";
+  "Find card shows by city, state or show name. Browse dates, venues and source listings from TCDB and the Lifestyle card-show directory.";
 export const metadata = {
   title,
   description,
@@ -127,7 +127,7 @@ export default async function CardShows({ searchParams }) {
                 </h3>
                 <p>
                   {result.when === "upcoming" && !hasUpcoming
-                    ? "You can browse past listings while the Lifestyle directory awaits its next update."
+                    ? "You can browse past listings while we add new show dates."
                     : "Try a different location or a shorter search."}
                 </p>
                 <a
@@ -172,26 +172,13 @@ export default async function CardShows({ searchParams }) {
                         {show.time ? ` · ${show.time}` : " · Hours not listed"}
                       </p>
                       <div className={styles.links}>
-                        {show.url && (
-                          <a
-                            href={show.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            View listing ↗
-                            <span className={styles.srOnly}>
-                              {" "}
-                              for {show.title}
-                            </span>
-                          </a>
-                        )}
-                        {show.website && show.website !== show.url && (
+                        {show.website && (
                           <a
                             href={show.website}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            Organizer website ↗
+                            Show website ↗
                             <span className={styles.srOnly}>
                               {" "}
                               for {show.title}
@@ -257,15 +244,16 @@ export default async function CardShows({ searchParams }) {
         )}
         <aside className={styles.source}>
           <p>
-            Listings from the Lifestyle card-show directory.
+            Show information from TCDB (Trading Card Database) and the Lifestyle
+            card-show directory.
             {data.importedOn
-              ? ` Last source update: ${formatShowDate(data.importedOn)}.`
+              ? ` Latest imported listings: ${formatShowDate(data.importedOn)}.`
               : ""}
           </p>
           <p>
-            Check the original listing for current dates, hours and admission
-            before making travel plans. Listings do not imply SellMySlabs is
-            hosting or attending.
+            Confirm dates, hours and admission with the organizer before making
+            travel plans. Listings do not imply SellMySlabs is hosting or
+            attending.
           </p>
         </aside>
       </main>

@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  combineShowSources,
+  directShowUrl,
   directoryDay,
   loadShowDirectory,
   normalizeShowFeed,
@@ -108,30 +110,99 @@ test("feed outages and malformed payloads have an explicit recoverable state, di
     (
       await loadShowDirectory(async () => {
         throw Error("offline");
-      })
+      }, null)
     ).unavailable,
     true,
   );
   assert.equal(
-    (await loadShowDirectory(async () => ({ ok: false }))).unavailable,
+    (await loadShowDirectory(async () => ({ ok: false }), null)).unavailable,
     true,
   );
   assert.equal(
     (
-      await loadShowDirectory(async () => ({
-        ok: true,
-        json: async () => ({ error: "failed" }),
-      }))
+      await loadShowDirectory(
+        async () => ({
+          ok: true,
+          json: async () => ({ error: "failed" }),
+        }),
+        null,
+      )
     ).unavailable,
     true,
   );
-  const empty = await loadShowDirectory(async () => ({
-    ok: true,
-    json: async () => ({ shows: [] }),
-  }));
+  const empty = await loadShowDirectory(
+    async () => ({
+      ok: true,
+      json: async () => ({ shows: [] }),
+    }),
+    null,
+  );
   assert.equal(empty.unavailable, false);
   assert.deepEqual(empty.shows, []);
 });
 test("directory day uses the shop timezone around midnight UTC", () => {
   assert.equal(directoryDay(new Date("2026-11-27T01:00:00Z")), "2026-11-26");
+});
+
+test("a newer TCDB import replaces its coverage range, preserves community/history, and yields to newer shared data", () => {
+  const shared = {
+    ...normalizeShowFeed({
+      fetchedAt: "2026-10-21",
+      shows: [
+        row("history", "2026-10-01"),
+        row("removed", "2026-11-28"),
+        row("community", "2026-11-28", { source: "community" }),
+        row("later", "2027-01-01"),
+      ],
+    }),
+    unavailable: false,
+  };
+  const snapshot = {
+    fetchedAt: "2026-11-26",
+    coverageFrom: "2026-11-26",
+    coverageThrough: "2026-12-10",
+    shows: [row("fresh", "2026-11-28")],
+  };
+  const combined = combineShowSources(shared, snapshot);
+  assert.deepEqual(
+    combined.shows.map((s) => s.id),
+    ["history", "community", "later", "fresh"],
+  );
+  assert.equal(combined.importedOn, "2026-11-26");
+  const newer = { ...shared, importedOn: "2026-11-27", shows: [] };
+  assert.equal(combineShowSources(newer, snapshot), newer);
+});
+
+test("reviewed TCDB data remains usable when the shared feed is unavailable", async () => {
+  const data = await loadShowDirectory(async () => {
+    throw Error("offline");
+  });
+  assert.equal(data.unavailable, false);
+  assert.ok(data.shows.length > 0);
+  assert.ok(
+    data.shows.every((s) =>
+      s.url.startsWith("https://www.tcdb.com/CardShows.cfm?"),
+    ),
+  );
+});
+
+test("show website actions use direct external sites and never TCDB fallback links", () => {
+  assert.equal(
+    directShowUrl("https://www.tcdb.com/CardShows.cfm?MODE=VIEW&ID=42"),
+    "",
+  );
+  assert.equal(directShowUrl("https://TCDB.com/"), "");
+  assert.equal(directShowUrl("javascript:alert(1)"), "");
+  assert.equal(
+    directShowUrl("https://organizer.example/event"),
+    "https://organizer.example/event",
+  );
+  const { shows } = normalizeShowFeed({
+    shows: [
+      row("one", "2026-12-01", {
+        url: "https://www.tcdb.com/CardShows.cfm?MODE=VIEW&ID=42",
+      }),
+    ],
+  });
+  assert.equal(shows[0].website, "");
 });
