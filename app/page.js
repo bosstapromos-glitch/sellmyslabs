@@ -198,6 +198,18 @@ export default function Home() {
             </div>
           </div>
         </section>
+        <section className="section wrap" aria-labelledby="card-shows-heading">
+          <div className="section-heading">
+            <h2 id="card-shows-heading">Meet more collectors.</h2>
+            <p>
+              Find card shows by city, state or name in the Lifestyle directory.
+              Browse dates, venues and organizer links before you go.
+            </p>
+          </div>
+          <a className="button secondary" href="/card-shows">
+            Browse card shows
+          </a>
+        </section>
         <GoogleReviews />
         <section className="section wrap faq-grid" id="faq">
           <div>

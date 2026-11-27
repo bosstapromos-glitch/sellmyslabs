@@ -34,6 +34,9 @@ export function Header({ context }) {
               <a className="nav-text" href="/#our-shop">
                 Our shop
               </a>
+              <a className="nav-text" href="/card-shows">
+                Card shows
+              </a>
               <a className="button small" href="/sell">
                 Request an offer
               </a>
@@ -81,6 +84,7 @@ export function Footer({ compact = false }) {
         <div>
           <h2>Here to help</h2>
           <a href="/#faq">Common questions</a>
+          <a href="/card-shows">Card show directory</a>
           <a href={BUSINESS.google} target="_blank" rel="noreferrer">
             Read our Google reviews
           </a>
