@@ -1,5 +1,4 @@
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
 export const viewport = {
   width: "device-width",
   initialScale: 1,
@@ -45,63 +44,13 @@ export const metadata = {
   },
 };
 export default function RootLayout({ children }) {
-  const content = (
-    <>
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      {children}
-    </>
-  );
   return (
     <html lang="en">
       <body>
-        {process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? (
-          <ClerkProvider
-            signInUrl="/sign-in"
-            signUpUrl="/sign-up"
-            signInFallbackRedirectUrl="/account"
-            signUpFallbackRedirectUrl="/account"
-            localization={{
-              signIn: {
-                emailCode: {
-                  subtitle: "Use the code from your email to sign in.",
-                },
-                password: { subtitle: "Continue to your SellMySlabs account." },
-                start: {
-                  title: "Sign in",
-                  titleCombined: "Sign in",
-                  subtitle: "See your requests, offers and purchase progress.",
-                  subtitleCombined:
-                    "See your requests, offers and purchase progress.",
-                },
-              },
-              signUp: {
-                emailCode: { subtitle: "Enter the code to verify your email." },
-                start: {
-                  title: "Create your account",
-                  titleCombined: "Create your account",
-                  subtitle:
-                    "Use the email on your request to see your items, offers and progress.",
-                  subtitleCombined:
-                    "Use the email on your request to see your items, offers and progress.",
-                },
-              },
-            }}
-            appearance={{
-              variables: {
-                colorPrimary: "#0071e3",
-                fontFamily:
-                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
-                borderRadius: "12px",
-              },
-            }}
-          >
-            {content}
-          </ClerkProvider>
-        ) : (
-          content
-        )}
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        {children}
       </body>
     </html>
   );
